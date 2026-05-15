@@ -1,5 +1,6 @@
 # compiled output
 dist
+dist-ssr
 node_modules
 build
 
@@ -14,10 +15,18 @@ lerna-debug.log*
 
 # OS
 .DS_Store
+*.local
 
-# Tests
+# Tests & coverage
 coverage
 .nyc_output
+__screenshots__/
+test-results/
+playwright-report/
+
+# Cypress
+**/cypress/videos/
+**/cypress/screenshots/
 
 # IDEs and editors
 .idea
@@ -27,6 +36,11 @@ coverage
 *.launch
 .settings/
 *.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 # IDE - VSCode (any app/package under apps/)
 **/.vscode/*
@@ -34,6 +48,13 @@ coverage
 !**/.vscode/tasks.json
 !**/.vscode/launch.json
 !**/.vscode/extensions.json
+
+# Tooling caches
+*.tsbuildinfo
+.eslintcache
+
+# Vite
+*.timestamp-*-*.mjs
 
 # dotenv environment variable files
 .env
