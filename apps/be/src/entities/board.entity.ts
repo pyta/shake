@@ -3,6 +3,7 @@ import { AuditedEntity } from '../common/entities/audited.entity';
 import { BoardNode } from './board-node.entity';
 import { BoardNodeConnection } from './board-node-connection.entity';
 import { BoardNodeProp } from './board-node-prop.entity';
+import { BoardNodeSocket } from './board-node-socket.entity';
 
 @Entity('boards')
 export class Board extends AuditedEntity {
@@ -14,6 +15,9 @@ export class Board extends AuditedEntity {
 
   @OneToMany(() => BoardNode, (n) => n.board)
   nodes: BoardNode[];
+
+  @OneToMany(() => BoardNodeSocket, (s) => s.board)
+  nodeSockets: BoardNodeSocket[];
 
   @OneToMany(() => BoardNodeConnection, (c) => c.board)
   connections: BoardNodeConnection[];

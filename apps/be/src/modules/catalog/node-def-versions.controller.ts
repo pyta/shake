@@ -46,7 +46,10 @@ export class NodeDefVersionsController {
 
   @Delete(':id')
   @ApiEntityIdParam()
-  @ApiOperation({ summary: 'Soft-delete node def version' })
+  @ApiOperation({
+    summary: 'Deprecate catalog node version',
+    description: 'Sets deprecatedAt and isActive=false (see db.md).',
+  })
   remove(@Param('id') id: string) {
     return this.service.remove(id);
   }

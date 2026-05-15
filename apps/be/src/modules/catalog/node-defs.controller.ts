@@ -46,7 +46,10 @@ export class NodeDefsController {
 
   @Delete(':id')
   @ApiEntityIdParam()
-  @ApiOperation({ summary: 'Soft-delete node def' })
+  @ApiOperation({
+    summary: 'Delete catalog node type',
+    description: 'Hard delete; cascades to versions when no FKs block it.',
+  })
   remove(@Param('id') id: string) {
     return this.nodeDefsService.remove(id);
   }

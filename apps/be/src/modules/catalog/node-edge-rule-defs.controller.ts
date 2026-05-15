@@ -46,7 +46,7 @@ export class NodeEdgeRuleDefsController {
 
   @Delete(':id')
   @ApiEntityIdParam()
-  @ApiOperation({ summary: 'Soft-delete edge rule def' })
+  @ApiOperation({ summary: 'Delete catalog node socket rule' })
   remove(@Param('id') id: string) {
     return this.service.remove(id);
   }

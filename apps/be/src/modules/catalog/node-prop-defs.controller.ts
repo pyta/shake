@@ -46,7 +46,7 @@ export class NodePropDefsController {
 
   @Delete(':id')
   @ApiEntityIdParam()
-  @ApiOperation({ summary: 'Soft-delete prop def' })
+  @ApiOperation({ summary: 'Delete catalog node property' })
   remove(@Param('id') id: string) {
     return this.service.remove(id);
   }

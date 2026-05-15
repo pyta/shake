@@ -6,21 +6,13 @@ export class CreateBoardNodeConnectionDto {
   @IsString()
   boardId: string;
 
-  @ApiProperty({ example: '10', description: 'FK to board_nodes.id' })
+  @ApiProperty({ example: '100', description: 'FK to board_node_sockets.id' })
   @IsString()
-  fromNodeId: string;
+  fromNodeSocketId: string;
 
-  @ApiProperty({ example: '100', description: 'FK to node_edge_defs.id' })
+  @ApiProperty({ example: '101', description: 'FK to board_node_sockets.id' })
   @IsString()
-  fromNodeEdgeDefId: string;
-
-  @ApiProperty({ example: '11', description: 'FK to board_nodes.id' })
-  @IsString()
-  toNodeId: string;
-
-  @ApiProperty({ example: '101', description: 'FK to node_edge_defs.id' })
-  @IsString()
-  toNodeEdgeDefId: string;
+  toNodeSocketId: string;
 
   @ApiPropertyOptional({
     example: 0,

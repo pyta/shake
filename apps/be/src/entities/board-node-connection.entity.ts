@@ -1,8 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { AuditedEntity } from '../common/entities/audited.entity';
 import { Board } from './board.entity';
-import { BoardNode } from './board-node.entity';
-import { NodeEdgeDef } from './node-edge-def.entity';
+import { BoardNodeSocket } from './board-node-socket.entity';
 
 @Entity('board_node_connections')
 export class BoardNodeConnection extends AuditedEntity {
@@ -14,36 +13,22 @@ export class BoardNodeConnection extends AuditedEntity {
   board: Board;
 
   @Column({ type: 'bigint' })
-  fromNodeId: string;
+  fromNodeSocketId: string;
 
-  @ManyToOne(() => BoardNode, (n) => n.outgoingConnections, {
+  @ManyToOne(() => BoardNodeSocket, (s) => s.outgoingConnections, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'fromNodeId' })
-  fromNode: BoardNode;
+  @JoinColumn({ name: 'fromNodeSocketId' })
+  fromSocket: BoardNodeSocket;
 
   @Column({ type: 'bigint' })
-  fromNodeEdgeDefId: string;
+  toNodeSocketId: string;
 
-  @ManyToOne(() => NodeEdgeDef, { onDelete: 'RESTRICT' })
-  @JoinColumn({ name: 'fromNodeEdgeDefId' })
-  fromNodeEdgeDef: NodeEdgeDef;
-
-  @Column({ type: 'bigint' })
-  toNodeId: string;
-
-  @ManyToOne(() => BoardNode, (n) => n.incomingConnections, {
+  @ManyToOne(() => BoardNodeSocket, (s) => s.incomingConnections, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'toNodeId' })
-  toNode: BoardNode;
-
-  @Column({ type: 'bigint' })
-  toNodeEdgeDefId: string;
-
-  @ManyToOne(() => NodeEdgeDef, { onDelete: 'RESTRICT' })
-  @JoinColumn({ name: 'toNodeEdgeDefId' })
-  toNodeEdgeDef: NodeEdgeDef;
+  @JoinColumn({ name: 'toNodeSocketId' })
+  toSocket: BoardNodeSocket;
 
   @Column({ type: 'int', default: 0 })
   order: number;

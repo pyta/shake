@@ -2,15 +2,15 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 
 export class CreateNodeEdgeRuleDefDto {
-  @ApiProperty({ example: '1', description: 'FK to node_def_versions.id' })
+  @ApiProperty({ example: '1', description: 'FK to catalog_node_versions.id' })
   @IsString()
-  nodeDefVersionId: string;
+  catalogNodeVersionId: string;
 
-  @ApiProperty({ example: '10', description: 'FK to node_edge_defs.id' })
+  @ApiProperty({ example: '10', description: 'FK to catalog_node_sockets.id' })
   @IsString()
-  nodeEdgeDefIdA: string;
+  catalogNodeSocketFromId: string;
 
-  @ApiProperty({ example: '11', description: 'FK to node_edge_defs.id' })
+  @ApiProperty({ example: '11', description: 'FK to catalog_node_sockets.id' })
   @IsString()
-  nodeEdgeDefIdB: string;
+  catalogNodeSocketToId: string;
 }

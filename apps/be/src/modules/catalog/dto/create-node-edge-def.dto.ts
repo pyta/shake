@@ -1,10 +1,10 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsIn, IsString, MaxLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsIn, IsInt, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateNodeEdgeDefDto {
-  @ApiProperty({ example: '1', description: 'FK to node_def_versions.id' })
+  @ApiProperty({ example: '1', description: 'FK to catalog_node_versions.id' })
   @IsString()
-  nodeDefVersionId: string;
+  catalogNodeVersionId: string;
 
   @ApiProperty({ enum: ['input', 'output'], example: 'input' })
   @IsIn(['input', 'output'])
@@ -14,4 +14,12 @@ export class CreateNodeEdgeDefDto {
   @IsString()
   @MaxLength(255)
   name: string;
+
+  @ApiPropertyOptional({
+    description: 'Max connections allowed to this socket (null = unlimited)',
+    nullable: true,
+  })
+  @IsOptional()
+  @IsInt()
+  limit?: number | null;
 }

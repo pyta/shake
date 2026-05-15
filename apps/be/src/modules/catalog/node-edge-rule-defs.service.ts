@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NodeEdgeRuleDef } from '../../entities/node-edge-rule-def.entity';
+import { CatalogNodeSocketRule } from '../../entities/catalog-node-socket-rule.entity';
 import { CreateNodeEdgeRuleDefDto } from './dto/create-node-edge-rule-def.dto';
 import { UpdateNodeEdgeRuleDefDto } from './dto/update-node-edge-rule-def.dto';
 
 @Injectable()
 export class NodeEdgeRuleDefsService {
   constructor(
-    @InjectRepository(NodeEdgeRuleDef)
-    private readonly repo: Repository<NodeEdgeRuleDef>,
+    @InjectRepository(CatalogNodeSocketRule)
+    private readonly repo: Repository<CatalogNodeSocketRule>,
   ) {}
 
   create(dto: CreateNodeEdgeRuleDefDto) {
@@ -24,7 +24,7 @@ export class NodeEdgeRuleDefsService {
   async findOne(id: string) {
     const row = await this.repo.findOne({ where: { id } });
     if (!row) {
-      throw new NotFoundException(`NodeEdgeRuleDef ${id} not found`);
+      throw new NotFoundException(`CatalogNodeSocketRule ${id} not found`);
     }
     return row;
   }
@@ -37,6 +37,6 @@ export class NodeEdgeRuleDefsService {
 
   async remove(id: string) {
     await this.findOne(id);
-    await this.repo.softDelete({ id });
+    await this.repo.delete({ id });
   }
 }

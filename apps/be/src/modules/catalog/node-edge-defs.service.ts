@@ -1,19 +1,24 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NodeEdgeDef } from '../../entities/node-edge-def.entity';
+import { CatalogNodeSocket } from '../../entities/catalog-node-socket.entity';
 import { CreateNodeEdgeDefDto } from './dto/create-node-edge-def.dto';
 import { UpdateNodeEdgeDefDto } from './dto/update-node-edge-def.dto';
 
 @Injectable()
 export class NodeEdgeDefsService {
   constructor(
-    @InjectRepository(NodeEdgeDef)
-    private readonly repo: Repository<NodeEdgeDef>,
+    @InjectRepository(CatalogNodeSocket)
+    private readonly repo: Repository<CatalogNodeSocket>,
   ) {}
 
   create(dto: CreateNodeEdgeDefDto) {
-    const row = this.repo.create(dto);
+    const row = this.repo.create({
+      catalogNodeVersionId: dto.catalogNodeVersionId,
+      type: dto.type,
+      name: dto.name,
+      limit: dto.limit ?? null,
+    });
     return this.repo.save(row);
   }
 
@@ -24,7 +29,7 @@ export class NodeEdgeDefsService {
   async findOne(id: string) {
     const row = await this.repo.findOne({ where: { id } });
     if (!row) {
-      throw new NotFoundException(`NodeEdgeDef ${id} not found`);
+      throw new NotFoundException(`CatalogNodeSocket ${id} not found`);
     }
     return row;
   }
@@ -37,6 +42,6 @@ export class NodeEdgeDefsService {
 
   async remove(id: string) {
     await this.findOne(id);
-    await this.repo.softDelete({ id });
+    await this.repo.delete({ id });
   }
 }

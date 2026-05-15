@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { AuditedEntity } from '../common/entities/audited.entity';
 import { Board } from './board.entity';
 import { BoardNode } from './board-node.entity';
-import { NodePropDef } from './node-prop-def.entity';
+import { CatalogNodeProperty } from './catalog-node-property.entity';
 
 @Entity('board_node_props')
 export class BoardNodeProp extends AuditedEntity {
@@ -21,11 +21,11 @@ export class BoardNodeProp extends AuditedEntity {
   node: BoardNode;
 
   @Column({ type: 'bigint' })
-  nodePropDefId: string;
+  catalogNodePropertyId: string;
 
-  @ManyToOne(() => NodePropDef, { onDelete: 'RESTRICT' })
-  @JoinColumn({ name: 'nodePropDefId' })
-  nodePropDef: NodePropDef;
+  @ManyToOne(() => CatalogNodeProperty, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'catalogNodePropertyId' })
+  catalogNodeProperty: CatalogNodeProperty;
 
   @Column({ type: 'jsonb', nullable: true })
   value: unknown;

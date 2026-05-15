@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NodeDefVersion } from '../../entities/node-def-version.entity';
+import { CatalogNodeVersion } from '../../entities/catalog-node-version.entity';
 import { CreateNodeDefVersionDto } from './dto/create-node-def-version.dto';
 import { UpdateNodeDefVersionDto } from './dto/update-node-def-version.dto';
 
 @Injectable()
 export class NodeDefVersionsService {
   constructor(
-    @InjectRepository(NodeDefVersion)
-    private readonly repo: Repository<NodeDefVersion>,
+    @InjectRepository(CatalogNodeVersion)
+    private readonly repo: Repository<CatalogNodeVersion>,
   ) {}
 
   create(dto: CreateNodeDefVersionDto) {
@@ -29,7 +29,7 @@ export class NodeDefVersionsService {
   async findOne(id: string) {
     const row = await this.repo.findOne({ where: { id } });
     if (!row) {
-      throw new NotFoundException(`NodeDefVersion ${id} not found`);
+      throw new NotFoundException(`CatalogNodeVersion ${id} not found`);
     }
     return row;
   }
@@ -44,8 +44,11 @@ export class NodeDefVersionsService {
     return this.repo.save(row);
   }
 
+  /** Prefer deprecation over deleting catalog rows (see `db.md`). */
   async remove(id: string) {
-    await this.findOne(id);
-    await this.repo.softDelete({ id });
+    const row = await this.findOne(id);
+    row.deprecatedAt = new Date();
+    row.isActive = false;
+    return this.repo.save(row);
   }
 }

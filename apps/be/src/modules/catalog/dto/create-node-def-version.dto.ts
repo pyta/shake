@@ -9,9 +9,9 @@ import {
 } from 'class-validator';
 
 export class CreateNodeDefVersionDto {
-  @ApiProperty({ example: '1', description: 'FK to node_defs.id' })
+  @ApiProperty({ example: '1', description: 'FK to catalog_nodes.id' })
   @IsString()
-  nodeDefId: string;
+  catalogNodeId: string;
 
   @ApiProperty({ example: 1, minimum: 1 })
   @IsInt()
@@ -21,12 +21,6 @@ export class CreateNodeDefVersionDto {
   @IsString()
   @MaxLength(255)
   name: string;
-
-  @ApiPropertyOptional({ example: 'meta', maxLength: 512, nullable: true })
-  @IsOptional()
-  @IsString()
-  @MaxLength(512)
-  value?: string | null;
 
   @ApiPropertyOptional({ example: true })
   @IsOptional()

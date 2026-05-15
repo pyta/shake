@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NodePropDef } from '../../entities/node-prop-def.entity';
+import { CatalogNodeProperty } from '../../entities/catalog-node-property.entity';
 import { CreateNodePropDefDto } from './dto/create-node-prop-def.dto';
 import { UpdateNodePropDefDto } from './dto/update-node-prop-def.dto';
 
 @Injectable()
 export class NodePropDefsService {
   constructor(
-    @InjectRepository(NodePropDef)
-    private readonly repo: Repository<NodePropDef>,
+    @InjectRepository(CatalogNodeProperty)
+    private readonly repo: Repository<CatalogNodeProperty>,
   ) {}
 
   create(dto: CreateNodePropDefDto) {
@@ -27,7 +27,7 @@ export class NodePropDefsService {
   async findOne(id: string) {
     const row = await this.repo.findOne({ where: { id } });
     if (!row) {
-      throw new NotFoundException(`NodePropDef ${id} not found`);
+      throw new NotFoundException(`CatalogNodeProperty ${id} not found`);
     }
     return row;
   }
@@ -40,6 +40,6 @@ export class NodePropDefsService {
 
   async remove(id: string) {
     await this.findOne(id);
-    await this.repo.softDelete({ id });
+    await this.repo.delete({ id });
   }
 }

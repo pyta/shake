@@ -10,12 +10,12 @@ export class CreateBoardNodePropDto {
   @IsString()
   nodeId: string;
 
-  @ApiProperty({ example: '20', description: 'FK to node_prop_defs.id' })
+  @ApiProperty({ example: '20', description: 'FK to catalog_node_properties.id' })
   @IsString()
-  nodePropDefId: string;
+  catalogNodePropertyId: string;
 
   @ApiPropertyOptional({
-    description: 'JSON value per prop def type',
+    description: 'JSON value per catalog property type',
     example: 42,
   })
   @IsOptional()

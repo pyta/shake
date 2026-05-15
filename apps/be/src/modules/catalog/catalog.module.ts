@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { NodeDef } from '../../entities/node-def.entity';
-import { NodeDefVersion } from '../../entities/node-def-version.entity';
-import { NodeEdgeDef } from '../../entities/node-edge-def.entity';
-import { NodeEdgeRuleDef } from '../../entities/node-edge-rule-def.entity';
-import { NodePropDef } from '../../entities/node-prop-def.entity';
+import { CatalogNode } from '../../entities/catalog-node.entity';
+import { CatalogNodeVersion } from '../../entities/catalog-node-version.entity';
+import { CatalogNodeSocket } from '../../entities/catalog-node-socket.entity';
+import { CatalogNodeSocketRule } from '../../entities/catalog-node-socket-rule.entity';
+import { CatalogNodeProperty } from '../../entities/catalog-node-property.entity';
 import { NodeDefsController } from './node-defs.controller';
 import { NodeDefsService } from './node-defs.service';
 import { NodeDefVersionsController } from './node-def-versions.controller';
@@ -19,11 +19,11 @@ import { NodePropDefsService } from './node-prop-defs.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      NodeDef,
-      NodeDefVersion,
-      NodeEdgeDef,
-      NodeEdgeRuleDef,
-      NodePropDef,
+      CatalogNode,
+      CatalogNodeVersion,
+      CatalogNodeSocket,
+      CatalogNodeSocketRule,
+      CatalogNodeProperty,
     ]),
   ],
   controllers: [
@@ -40,5 +40,6 @@ import { NodePropDefsService } from './node-prop-defs.service';
     NodeEdgeRuleDefsService,
     NodePropDefsService,
   ],
+  exports: [TypeOrmModule],
 })
 export class CatalogModule {}

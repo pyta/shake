@@ -2,9 +2,9 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateNodePropDefDto {
-  @ApiProperty({ example: '1', description: 'FK to node_def_versions.id' })
+  @ApiProperty({ example: '1', description: 'FK to catalog_node_versions.id' })
   @IsString()
-  nodeDefVersionId: string;
+  catalogNodeVersionId: string;
 
   @ApiProperty({
     example: 'text',

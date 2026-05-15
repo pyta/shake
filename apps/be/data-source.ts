@@ -5,11 +5,12 @@ import { Board } from './src/entities/board.entity';
 import { BoardNode } from './src/entities/board-node.entity';
 import { BoardNodeConnection } from './src/entities/board-node-connection.entity';
 import { BoardNodeProp } from './src/entities/board-node-prop.entity';
-import { NodeDef } from './src/entities/node-def.entity';
-import { NodeDefVersion } from './src/entities/node-def-version.entity';
-import { NodeEdgeDef } from './src/entities/node-edge-def.entity';
-import { NodeEdgeRuleDef } from './src/entities/node-edge-rule-def.entity';
-import { NodePropDef } from './src/entities/node-prop-def.entity';
+import { BoardNodeSocket } from './src/entities/board-node-socket.entity';
+import { CatalogNode } from './src/entities/catalog-node.entity';
+import { CatalogNodeVersion } from './src/entities/catalog-node-version.entity';
+import { CatalogNodeSocket } from './src/entities/catalog-node-socket.entity';
+import { CatalogNodeSocketRule } from './src/entities/catalog-node-socket-rule.entity';
+import { CatalogNodeProperty } from './src/entities/catalog-node-property.entity';
 
 loadEnv({ path: '.env' });
 
@@ -23,13 +24,14 @@ export default new DataSource({
   entities: [
     Board,
     BoardNode,
+    BoardNodeSocket,
     BoardNodeConnection,
     BoardNodeProp,
-    NodeDef,
-    NodeDefVersion,
-    NodeEdgeDef,
-    NodeEdgeRuleDef,
-    NodePropDef,
+    CatalogNode,
+    CatalogNodeVersion,
+    CatalogNodeSocket,
+    CatalogNodeSocketRule,
+    CatalogNodeProperty,
   ],
   migrations: ['src/migrations/*.ts'],
   synchronize: false,
