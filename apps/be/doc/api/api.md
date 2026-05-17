@@ -1,88 +1,103 @@
-# API — list pagination & search
+# API — lists, pagination & OpenAPI
 
-Design notes for adding **pagination**, **filters**, and **text search** to NestJS list endpoints.
+Backend HTTP contract: **paginated nested lists**, **flat CRUD** by entity id, and a **committed OpenAPI spec** for FE type generation.
 
 Related docs:
 
 - [DB schema](../db/db.md) — entities, soft delete, deprecation
+- [FE services & sync](../../../fe/doc/service/service.md) — mirrors this API on the client (`openapi-typescript`, services)
 
 ---
 
-## Current state
+## Current state (implemented)
 
-All nine resource controllers under `apps/be/src/modules/` follow the same pattern:
+### Two controller styles per resource family
 
-| Method | Path            | Behavior today                                                                |
-| ------ | --------------- | ----------------------------------------------------------------------------- |
-| `GET`  | `/resource`     | `findAll()` — **no query params**, returns **full table** ordered by `id ASC` |
-| `GET`  | `/resource/:id` | Single entity by id                                                           |
+| Style               | Methods                                      | Path pattern                                                  | Response                                |
+| ------------------- | -------------------------------------------- | ------------------------------------------------------------- | --------------------------------------- |
+| **Collection list** | `GET`                                        | Nested or top-level (see tables below)                        | `PaginatedResult<T>` — `{ data, meta }` |
+| **Entity CRUD**     | `POST`, `GET :id`, `PATCH :id`, `DELETE :id` | Flat kebab-case (`/board-nodes`, `/catalog-node-versions`, …) | Single entity, or **no body** on delete |
 
-Services use plain TypeORM `repo.find({ order: { id: 'ASC' } })` (board nodes also eager-load `sockets` and `catalogNodeVersion`).
+There is **no** `GET` collection on flat CRUD controllers (e.g. no `GET /board-nodes`).
 
-**Already in place:**
+| Operation    | Typical response                        |
+| ------------ | --------------------------------------- |
+| `POST`       | `201` + entity (`@ApiCreatedResponse`)  |
+| `GET` (list) | `200` + `Paginated*` envelope           |
+| `GET` (one)  | `200` + entity                          |
+| `PATCH`      | `200` + entity                          |
+| `DELETE`     | **`204 No Content`** (soft/hard delete) |
 
-- `class-validator` + `class-transformer`
-- Global `ValidationPipe` (`whitelist`, `forbidNonWhitelisted`, `transform`) in `main.ts`
-- No pagination library; no shared list utilities under `common/`
+**Exception:** `DELETE /catalog-node-versions/:id` **deprecates** the row (`deprecatedAt`, `isActive=false`) and returns **`200`** + updated `CatalogNodeVersion` (not 204).
 
-**Gaps:**
+### Shared list stack
 
-- Board-scoped tables (`board_nodes`, `board_node_connections`, `board_node_props`) list **all rows** - no `boardId` filter.
-- Catalog child tables list globally - callers should scope by `catalogNodeVersionId` / `catalogNodeId`.
+| Piece                                        | Location                                                                                                 |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `PaginationQueryDto`                         | `apps/be/src/common/pagination/pagination-query.dto.ts` — `page`, `pageSize`, `sortBy`, `sortOrder`, `q` |
+| `PaginatedResult<T>` / `toPaginatedResult()` | `apps/be/src/common/pagination/index.ts`                                                                 |
+| `nestjs-paginate`                            | Per-service `findAll` / `findAllByBoard` / `findAllByVersion`                                            |
+| List query DTOs                              | `apps/be/src/modules/**/dto/list-*.dto.ts`                                                               |
+| Global validation                            | `ValidationPipe` in `main.ts` (`whitelist`, `forbidNonWhitelisted`, `transform`)                         |
+
+Defaults: `page=1`, `pageSize=20`, max `pageSize=100` (`nestjs-paginate` global config in `main.ts`).
+
+### List routes (canonical)
+
+**Board graph**
+
+| `GET`                          | List controller                      |
+| ------------------------------ | ------------------------------------ |
+| `/boards`                      | `BoardsController`                   |
+| `/boards/:boardId/nodes`       | `BoardNodesListController`           |
+| `/boards/:boardId/connections` | `BoardNodeConnectionsListController` |
+| `/boards/:boardId/props`       | `BoardNodePropsListController`       |
+
+**Catalog**
+
+| `GET`                                                       | List controller                        |
+| ----------------------------------------------------------- | -------------------------------------- |
+| `/catalog-nodes`                                            | `CatalogNodesController`               |
+| `/catalog-nodes/:catalogNodeId/versions`                    | `CatalogNodeVersionsListController`    |
+| `/catalog-node-versions/:catalogNodeVersionId/sockets`      | `CatalogNodeSocketsListController`     |
+| `/catalog-node-versions/:catalogNodeVersionId/properties`   | `CatalogNodePropertiesListController`  |
+| `/catalog-node-versions/:catalogNodeVersionId/socket-rules` | `CatalogNodeSocketRulesListController` |
+
+**Not exposed:** global unscoped lists (`GET /board-nodes`, `GET /catalog-node-versions`, …). `BoardNodeSocket` has no list/CRUD controller (created with `POST /board-nodes`).
 
 ---
 
-## Goals
+## Cross-cutting list rules
 
-1. **Scalable lists** - page through large catalogs and boards without loading entire tables.
-2. **Scoped queries** - board graph lists filtered by `boardId` (required or path-scoped).
-3. **Toolbox UX** - catalog lists support filters + search for pickers and admin.
-4. **Consistent API** - shared query/response shape across resources.
-5. **Safe queries** - whitelisted filters and sort fields only; capped page size.
+| Topic                | Decision                                                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Default page size    | 20                                                                                                                 |
+| Max page size        | 100                                                                                                                |
+| Sort                 | Whitelist `sortBy` per resource (`list-*.dto.ts` + service); unknown field → `400`                                 |
+| Soft delete          | Audited entities: `deletedAt IS NOT NULL` excluded by default (TypeORM). `?includeDeleted` **not** implemented yet |
+| Catalog versions     | List under `…/versions`: active/non-deprecated by default; `?includeDeprecated=true` includes deprecated rows      |
+| Board node relations | List does **not** eager-load by default; `?include=sockets,catalogNodeVersion` (comma-separated, whitelisted)      |
+| IDs in JSON          | `bigint` columns serialized as **strings**                                                                         |
 
 ---
 
-## Recommended approach
+## Per-endpoint filters & search
 
-### Shared primitives (`apps/be/src/common/`)
+| Endpoint                                      | Extra query params                   | Search (`q`) |
+| --------------------------------------------- | ------------------------------------ | ------------ |
+| `GET /boards`                                 | —                                    | `name`       |
+| `GET /boards/:boardId/nodes`                  | `catalogNodeVersionId`, `include`    | `value`      |
+| `GET /boards/:boardId/connections`            | `fromNodeSocketId`, `toNodeSocketId` | —            |
+| `GET /boards/:boardId/props`                  | `nodeId`, `catalogNodePropertyId`    | —            |
+| `GET /catalog-nodes`                          | —                                    | `slug`       |
+| `GET /catalog-nodes/:catalogNodeId/versions`  | `isActive`, `includeDeprecated`      | `name`       |
+| `GET /catalog-node-versions/:id/sockets`      | `type` (`input` \| `output`)         | `name`       |
+| `GET /catalog-node-versions/:id/properties`   | `type`, `isRequired`                 | —            |
+| `GET /catalog-node-versions/:id/socket-rules` | —                                    | —            |
 
-Introduce once, compose per resource:
+Sort whitelists live next to each list DTO / service (e.g. board nodes: `id`, `createdAt`).
 
-| Piece                     | Purpose                                                            |
-| ------------------------- | ------------------------------------------------------------------ |
-| `PaginationQueryDto`      | `page` (1-based, default 1), `pageSize` (default 20, max 100)      |
-| `SortQueryDto` (optional) | `sortBy`, `sortOrder` — **whitelist** allowed columns per resource |
-| `PaginatedResult<T>`      | Typed envelope `{ data, meta }` for all list responses (see below) |
-| `toPaginatedResult(...)`  | Map `nestjs-paginate` output → `PaginatedResult<T>`                |
-
-Use **offset pagination** (`page` + `pageSize`) first. Add **cursor** pagination (`afterId`) only if profiling shows need on very large boards.
-
-**Do not** add a generic “filter any field” syntax (`?filter[slug][eq]=...`) unless a public API requires it — harder to secure and document.
-
-**Library:** [`nestjs-paginate`](https://github.com/ppetzold/nestjs-paginate) for list endpoints (pagination, sort, filter config per entity). **Always map** the library result to `{ data, meta }` before returning from controllers (single FE contract).
-
-### Controller / service pattern
-
-```typescript
-@Get()
-@ApiOperation({ summary: 'List catalog nodes (paginated)' })
-findAll(@Query() query: ListCatalogNodesQueryDto) {
-  return this.catalogNodesService.findAll(query);
-}
-```
-
-Each resource gets `List<Resource>QueryDto` extending `PaginationQueryDto` plus resource-specific filters.
-
-Service flow:
-
-1. Configure `nestjs-paginate` for the entity (sortable/filterable columns, defaults).
-2. Run paginate (query builder or repository adapter per library docs).
-3. Map library output → `PaginatedResult<T>` via shared helper.
-4. Apply custom search (`q` / `ILIKE`) and defaults (e.g. catalog version deprecation) in query config or pre-query hooks where the library does not cover them.
-
-### List response contract
-
-All list endpoints return a **paginated envelope** (not bare `T[]`, not `Link` headers). Change from today’s `T[]` to:
+### List response envelope
 
 ```json
 {
@@ -96,92 +111,98 @@ All list endpoints return a **paginated envelope** (not bare `T[]`, not `Link` h
 }
 ```
 
-- Keep `GET /resource/:id` unchanged (single entity).
-- Document query params in OpenAPI via DTO `@ApiProperty` / `@ApiQuery`.
+OpenAPI schema: `PaginatedMetaDto` + per-resource `Paginated*` classes (e.g. `PaginatedBoards`).
+
+---
+
+## OpenAPI & FE type generation
+
+### Live docs
+
+| URL                               | Purpose                                          |
+| --------------------------------- | ------------------------------------------------ |
+| `http://localhost:3000/docs`      | Swagger UI                                       |
+| `http://localhost:3000/docs/json` | OpenAPI 3 JSON (same document as committed spec) |
+
+Configured in `apps/be/src/swagger.ts` (`SWAGGER_PATH` env overrides path segment, default `docs`).
+
+### Committed spec
+
+| Artifact               | Purpose                                                                     |
+| ---------------------- | --------------------------------------------------------------------------- |
+| `apps/be/openapi.json` | Source for FE `openapi-typescript` codegen; commit when API surface changes |
+
+Regenerate (requires DB — bootstraps full `AppModule`):
+
+```bash
+cd apps/be
+yarn export:openapi
+```
+
+Alternative (writes spec then exits, no HTTP listen):
+
+```bash
+# PowerShell
+$env:EXPORT_OPENAPI = "1"; yarn nest start
+```
+
+Implementation: `buildOpenApiDocument()` in `swagger.ts`, script `src/scripts/export-openapi.ts`.
+
+### Response schemas (for codegen)
+
+Request/query types come from **DTOs** (`@ApiProperty` on `create-*.dto.ts`, `list-*.dto.ts`). **Response** shapes are explicit OpenAPI-only classes (not TypeORM entities):
+
+| Area                   | Location                                                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Entity schemas         | `apps/be/src/common/swagger/schemas/*.schema.ts` — e.g. `Board`, `CatalogNode`, `BoardNode`                        |
+| Paginated wrappers     | `apps/be/src/common/swagger/schemas/paginated.schema.ts` — e.g. `PaginatedBoards`                                  |
+| Shared meta            | `apps/be/src/common/swagger/paginated-meta.dto.ts` — `PaginatedMetaDto`                                            |
+| Controller decorators  | `apps/be/src/common/swagger/api-responses.decorator.ts` — `ApiOkEntity`, `ApiPaginatedOk`, `ApiDeleteNoContent`, … |
+| `extraModels` registry | `OPENAPI_EXTRA_MODELS` in `schemas/index.ts`                                                                       |
+
+Nest CLI **Swagger plugin** (`nest-cli.json`) adds metadata from `class-validator` on `*.dto.ts` files.
+
+### FE workflow (summary)
+
+See [FE service doc](../../../fe/doc/service/service.md). After BE changes:
+
+1. `yarn export:openapi` in `apps/be`
+2. Commit `openapi.json` if changed
+3. `yarn codegen:api` in `apps/fe` → `src/api/generated/schema.d.ts`
+4. Thin aliases in `api/types.ts`, e.g. `components["schemas"]["Board"]`
+
+---
+
+## Design notes (reference)
 
 ### Search vs filters
 
-| Mechanism   | Example                          | Use when                                                   |
-| ----------- | -------------------------------- | ---------------------------------------------------------- |
-| **Filters** | `?catalogNodeId=5&isActive=true` | Exact/scoped queries, FK scoping                           |
-| **Search**  | `?q=button`                      | Search box; map `q` to `ILIKE` on 1–2 columns per endpoint |
+| Mechanism   | Example                                 | Use when                                                |
+| ----------- | --------------------------------------- | ------------------------------------------------------- |
+| **Filters** | `?catalogNodeVersionId=5&isActive=true` | Exact/scoped queries, FK scoping                        |
+| **Search**  | `?q=button`                             | Search box; `ILIKE` on whitelisted columns per endpoint |
 
-Avoid one global `q` that searches every column on every resource.
+Avoid a global `q` that searches every column on every resource.
 
-### List vs single-entity routes
+### Offset vs cursor
 
-**List (`GET` collection)** — nested paths above; paginated envelope; flat global collection URLs are removed in v1.
+**Offset** (`page` + `pageSize`) is used everywhere. Add cursor pagination (`afterId`) only if profiling requires it on very large boards.
 
-**Single-entity CRUD** (`GET/PATCH/DELETE` by id, `POST` create) — may keep existing flat resource paths and controllers (e.g. `PATCH /catalog-node-versions/:id`, `POST /catalog-node-sockets`) so clients reference entities by global `id`. Only **unscoped list** endpoints move under nested parents.
+### Implementation pattern (service)
 
----
-
-## Cross-cutting rules
-
-| Topic             | Decision                                                                                                                                                            |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Default page size | 20                                                                                                                                                                  |
-| Max page size     | 100                                                                                                                                                                 |
-| Sort              | Whitelist `sortBy` per resource; reject unknown fields                                                                                                              |
-| Soft delete       | Audited entities: exclude `deletedAt IS NOT NULL` by default (TypeORM default). **`?includeDeleted` deferred** until auth/roles exist                               |
-| Catalog versions  | Default toolbox list: `isActive=true` and `deprecatedAt IS NULL` unless `?includeDeprecated=true`                                                                   |
-| Relations         | **Decided:** `board-nodes` list does **not** eager-load relations by default; opt in with `?include=sockets,catalogNodeVersion` (comma-separated, whitelisted keys) |
-| DB indexes        | After filters are fixed: index `boardId`, `catalogNodeVersionId`, `catalogNodeId`; consider trigram/GIN for hot `ILIKE` on `slug` / `name`                          |
+```typescript
+const paginateQuery = buildPaginateQuery(query, SORT_WHITELIST);
+const result = await paginate(paginateQuery, repo, {
+  where: buildWhere(parentId, query),
+  sortableColumns: [...SORT_WHITELIST],
+  relations: parseIncludes(query.include),
+  maxLimit: 100,
+  defaultLimit: 20,
+});
+return toPaginatedResult(result);
+```
 
 ---
-
-## Per-endpoint plan
-
-### High priority — board graph
-
-These resources are naturally scoped by `boardId` but currently return **all rows**.
-
-**Routing (decided):**
-
-| Route                              | Role                                                                    |
-| ---------------------------------- | ----------------------------------------------------------------------- |
-| `GET /boards`                      | **Admin / library:** paginated list of **all** boards; search on `name` |
-| `GET /boards/:boardId/nodes`       | Board editor: nodes for one board (`boardId` from path, required)       |
-| `GET /boards/:boardId/connections` | Connections for one board                                               |
-| `GET /boards/:boardId/props`       | Props for one board                                                     |
-
-Nested routes are **canonical** for board-scoped children. `boardId` is always required (from path). Do not expose unscoped global lists for nodes / connections / props.
-
-**Remove** (no backward-compat aliases): `GET /board-nodes`, `GET /board-node-connections`, `GET /board-node-props`.
-
-| Endpoint (nested)                  | Filters                              | Search (`q`) | Notes                            |
-| ---------------------------------- | ------------------------------------ | ------------ | -------------------------------- |
-| `GET /boards`                      | —                                    | `name`       | Soft-delete excluded by default  |
-| `GET /boards/:boardId/nodes`       | `catalogNodeVersionId`               | `value`      | Relations opt-in via `?include=` |
-| `GET /boards/:boardId/connections` | `fromNodeSocketId`, `toNodeSocketId` | —            | Primary board editor load path   |
-| `GET /boards/:boardId/props`       | `nodeId`, `catalogNodePropertyId`    | —            |                                  |
-
-### Medium priority — catalog
-
-**Routing** mirror the board pattern — top-level list for node types, nested lists for children. Parent id from path (required). No backward-compat flat list routes.
-
-| Route                                                           | Role                                      |
-| --------------------------------------------------------------- | ----------------------------------------- |
-| `GET /catalog-nodes`                                            | Paginated toolbox types; search on `slug` |
-| `GET /catalog-nodes/:catalogNodeId/versions`                    | Versions for one logical type             |
-| `GET /catalog-node-versions/:catalogNodeVersionId/sockets`      | Sockets on one version                    |
-| `GET /catalog-node-versions/:catalogNodeVersionId/properties`   | Property schemas on one version           |
-| `GET /catalog-node-versions/:catalogNodeVersionId/socket-rules` | Allowed socket pairs on one version       |
-
-**Remove** `GET /catalog-node-versions`, `GET /catalog-node-sockets`, `GET /catalog-node-properties`, `GET /catalog-node-socket-rules` (global unscoped lists).
-
-| Endpoint (nested)                                               | Filters                      | Search (`q`) | Notes                                                                                       |
-| --------------------------------------------------------------- | ---------------------------- | ------------ | ------------------------------------------------------------------------------------------- |
-| `GET /catalog-nodes`                                            | —                            | `slug`       | Toolbox type picker                                                                         |
-| `GET /catalog-nodes/:catalogNodeId/versions`                    | `isActive`, `deprecated`     | `name`       | **Default:** `isActive=true`, `deprecatedAt IS NULL`; `?includeDeprecated=true` to override |
-| `GET /catalog-node-versions/:catalogNodeVersionId/sockets`      | `type` (`input` \| `output`) | `name`       |                                                                                             |
-| `GET /catalog-node-versions/:catalogNodeVersionId/properties`   | `type`, `isRequired`         | —            |                                                                                             |
-| `GET /catalog-node-versions/:catalogNodeVersionId/socket-rules` | —                            | —            | Usually small per version; still use paginated envelope                                     |
-
-### Lower priority
-
-- Global unpaginated lists are acceptable only when a **required** parent filter keeps result sets small (e.g. all sockets for one `catalogNodeVersionId`).
-- Still prefer the paginated envelope everywhere for API consistency.
 
 ## Suggested sort whitelists
 
@@ -196,85 +217,27 @@ Nested routes are **canonical** for board-scoped children. `boardId` is always r
 | `board-node-connections`  | `id`, `order`                          |
 | `board-node-props`        | `id`                                   |
 
-Default sort: preserve today’s `id ASC` where no product preference; versions may default to `version DESC`.
+Default sort: `id ASC` unless overridden in service config.
 
-## Implementation sketch
+---
 
-### Pagination DTO
+## Rollout status
 
-```typescript
-export class PaginationQueryDto {
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  page?: number = 1;
+| Step                                                     | Status                |
+| -------------------------------------------------------- | --------------------- |
+| `nestjs-paginate` + `PaginatedResult`                    | Done                  |
+| Board graph nested lists + paginated `GET /boards`       | Done                  |
+| Catalog nested lists; no global child lists              | Done                  |
+| OpenAPI query + response schemas + `openapi.json` export | Done                  |
+| DB indexes for hot filters / `ILIKE`                     | Planned               |
+| `?includeDeleted=true`                                   | Deferred (auth/roles) |
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(100)
-  pageSize?: number = 20;
-}
-```
-
-### Example — catalog node versions (nested route)
-
-`GET /catalog-nodes/:catalogNodeId/versions` — `catalogNodeId` from `@Param('catalogNodeId')`.
-
-```typescript
-export class ListCatalogNodeVersionsQueryDto extends PaginationQueryDto {
-  @IsOptional()
-  @Transform(({ value }) => value === "true")
-  @IsBoolean()
-  isActive?: boolean;
-
-  @IsOptional()
-  @Transform(({ value }) => value === "true")
-  @IsBoolean()
-  includeDeprecated?: boolean;
-
-  @IsOptional()
-  @IsString()
-  q?: string;
-}
-
-// service: nestjs-paginate + default filters (isActive, deprecatedAt) + toPaginatedResult()
-```
-
-### Example — board nodes (nested route)
-
-`GET /boards/:boardId/nodes` — `boardId` from `@Param('boardId')`, not query DTO.
-
-```typescript
-export class ListBoardNodesQueryDto extends PaginationQueryDto {
-  @IsOptional()
-  @IsString()
-  catalogNodeVersionId?: string;
-
-  @IsOptional()
-  @IsString()
-  q?: string;
-
-  @IsOptional()
-  @IsString()
-  include?: string; // comma-separated: sockets,catalogNodeVersion
-}
-```
-
-## Rollout order
-
-1. **Dependency & common types** - add `nestjs-paginate`; `PaginatedResult<T>` + `toPaginatedResult()` mapper (always `{ data, meta }`).
-2. **Board graph** - paginated `GET /boards`; nested `GET /boards/:boardId/nodes|connections|props`; remove flat `GET /board-nodes|board-node-connections|board-node-props`; `?include=` on nodes.
-3. **Catalog** - paginated nested routes (see catalog table); remove flat global list routes; version list defaults on `…/versions`.
-4. **Catalog nodes** - covered by step 3 (`GET /catalog-nodes` + slug search).
-5. **OpenAPI** - query params and envelope schema on all v1 list endpoints.
+---
 
 ## Out of scope (for now)
 
 - Cursor-based pagination on all endpoints
-- Generic filter DSL in query strings
-- Full-text search engine (Elasticsearch, etc.) — PostgreSQL `ILIKE` is enough initially
-- `BoardNodeSocket` REST list (no controller yet; see FE service doc)
-- `?includeDeleted=true` on boards (defer until auth/roles)
+- Generic filter DSL in query strings (`?filter[slug][eq]=…`)
+- Full-text search engine (PostgreSQL `ILIKE` only)
+- `BoardNodeSocket` REST resource (sockets via `POST /board-nodes` and `?include=sockets` on node lists)
+- `?includeDeleted=true` on boards
