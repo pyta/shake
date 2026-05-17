@@ -8,7 +8,7 @@ import {
   MaxLength,
 } from 'class-validator';
 
-export class CreateNodeDefVersionDto {
+export class CreateCatalogNodeVersionDto {
   @ApiProperty({ example: '1', description: 'FK to catalog_nodes.id' })
   @IsString()
   catalogNodeId: string;

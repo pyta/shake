@@ -2,17 +2,17 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CatalogNodeSocketRule } from '../../entities/catalog-node-socket-rule.entity';
-import { CreateNodeEdgeRuleDefDto } from './dto/create-node-edge-rule-def.dto';
-import { UpdateNodeEdgeRuleDefDto } from './dto/update-node-edge-rule-def.dto';
+import { CreateCatalogNodeSocketRuleDto } from './dto/create-catalog-node-socket-rule.dto';
+import { UpdateCatalogNodeSocketRuleDto } from './dto/update-catalog-node-socket-rule.dto';
 
 @Injectable()
-export class NodeEdgeRuleDefsService {
+export class CatalogNodeSocketRulesService {
   constructor(
     @InjectRepository(CatalogNodeSocketRule)
     private readonly repo: Repository<CatalogNodeSocketRule>,
   ) {}
 
-  create(dto: CreateNodeEdgeRuleDefDto) {
+  create(dto: CreateCatalogNodeSocketRuleDto) {
     const row = this.repo.create(dto);
     return this.repo.save(row);
   }
@@ -29,7 +29,7 @@ export class NodeEdgeRuleDefsService {
     return row;
   }
 
-  async update(id: string, dto: UpdateNodeEdgeRuleDefDto) {
+  async update(id: string, dto: UpdateCatalogNodeSocketRuleDto) {
     const row = await this.findOne(id);
     this.repo.merge(row, dto);
     return this.repo.save(row);

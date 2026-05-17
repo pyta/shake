@@ -5,16 +5,16 @@ import { CatalogNodeVersion } from '../../entities/catalog-node-version.entity';
 import { CatalogNodeSocket } from '../../entities/catalog-node-socket.entity';
 import { CatalogNodeSocketRule } from '../../entities/catalog-node-socket-rule.entity';
 import { CatalogNodeProperty } from '../../entities/catalog-node-property.entity';
-import { NodeDefsController } from './node-defs.controller';
-import { NodeDefsService } from './node-defs.service';
-import { NodeDefVersionsController } from './node-def-versions.controller';
-import { NodeDefVersionsService } from './node-def-versions.service';
-import { NodeEdgeDefsController } from './node-edge-defs.controller';
-import { NodeEdgeDefsService } from './node-edge-defs.service';
-import { NodeEdgeRuleDefsController } from './node-edge-rule-defs.controller';
-import { NodeEdgeRuleDefsService } from './node-edge-rule-defs.service';
-import { NodePropDefsController } from './node-prop-defs.controller';
-import { NodePropDefsService } from './node-prop-defs.service';
+import { CatalogNodesController } from './catalog-nodes.controller';
+import { CatalogNodesService } from './catalog-nodes.service';
+import { CatalogNodeVersionsController } from './catalog-node-versions.controller';
+import { CatalogNodeVersionsService } from './catalog-node-versions.service';
+import { CatalogNodeSocketsController } from './catalog-node-sockets.controller';
+import { CatalogNodeSocketsService } from './catalog-node-sockets.service';
+import { CatalogNodeSocketRulesController } from './catalog-node-socket-rules.controller';
+import { CatalogNodeSocketRulesService } from './catalog-node-socket-rules.service';
+import { CatalogNodePropertiesController } from './catalog-node-properties.controller';
+import { CatalogNodePropertiesService } from './catalog-node-properties.service';
 
 @Module({
   imports: [
@@ -27,18 +27,18 @@ import { NodePropDefsService } from './node-prop-defs.service';
     ]),
   ],
   controllers: [
-    NodeDefsController,
-    NodeDefVersionsController,
-    NodeEdgeDefsController,
-    NodeEdgeRuleDefsController,
-    NodePropDefsController,
+    CatalogNodesController,
+    CatalogNodeVersionsController,
+    CatalogNodeSocketsController,
+    CatalogNodeSocketRulesController,
+    CatalogNodePropertiesController,
   ],
   providers: [
-    NodeDefsService,
-    NodeDefVersionsService,
-    NodeEdgeDefsService,
-    NodeEdgeRuleDefsService,
-    NodePropDefsService,
+    CatalogNodesService,
+    CatalogNodeVersionsService,
+    CatalogNodeSocketsService,
+    CatalogNodeSocketRulesService,
+    CatalogNodePropertiesService,
   ],
   exports: [TypeOrmModule],
 })

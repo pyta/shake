@@ -2,17 +2,17 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CatalogNode } from '../../entities/catalog-node.entity';
-import { CreateNodeDefDto } from './dto/create-node-def.dto';
-import { UpdateNodeDefDto } from './dto/update-node-def.dto';
+import { CreateCatalogNodeDto } from './dto/create-catalog-node.dto';
+import { UpdateCatalogNodeDto } from './dto/update-catalog-node.dto';
 
 @Injectable()
-export class NodeDefsService {
+export class CatalogNodesService {
   constructor(
     @InjectRepository(CatalogNode)
     private readonly repo: Repository<CatalogNode>,
   ) {}
 
-  create(dto: CreateNodeDefDto) {
+  create(dto: CreateCatalogNodeDto) {
     const row = this.repo.create(dto);
     return this.repo.save(row);
   }
@@ -29,7 +29,7 @@ export class NodeDefsService {
     return row;
   }
 
-  async update(id: string, dto: UpdateNodeDefDto) {
+  async update(id: string, dto: UpdateCatalogNodeDto) {
     const row = await this.findOne(id);
     this.repo.merge(row, dto);
     return this.repo.save(row);

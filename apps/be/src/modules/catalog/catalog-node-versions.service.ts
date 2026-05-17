@@ -2,17 +2,17 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CatalogNodeVersion } from '../../entities/catalog-node-version.entity';
-import { CreateNodeDefVersionDto } from './dto/create-node-def-version.dto';
-import { UpdateNodeDefVersionDto } from './dto/update-node-def-version.dto';
+import { CreateCatalogNodeVersionDto } from './dto/create-catalog-node-version.dto';
+import { UpdateCatalogNodeVersionDto } from './dto/update-catalog-node-version.dto';
 
 @Injectable()
-export class NodeDefVersionsService {
+export class CatalogNodeVersionsService {
   constructor(
     @InjectRepository(CatalogNodeVersion)
     private readonly repo: Repository<CatalogNodeVersion>,
   ) {}
 
-  create(dto: CreateNodeDefVersionDto) {
+  create(dto: CreateCatalogNodeVersionDto) {
     const { deprecatedAt, isActive, ...rest } = dto;
     const row = this.repo.create({
       ...rest,
@@ -34,7 +34,7 @@ export class NodeDefVersionsService {
     return row;
   }
 
-  async update(id: string, dto: UpdateNodeDefVersionDto) {
+  async update(id: string, dto: UpdateCatalogNodeVersionDto) {
     const row = await this.findOne(id);
     const { deprecatedAt, ...rest } = dto;
     this.repo.merge(row, rest);

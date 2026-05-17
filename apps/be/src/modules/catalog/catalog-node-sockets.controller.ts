@@ -9,38 +9,38 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiEntityIdParam } from '../../common/swagger/entity-id.decorator';
-import { CreateNodeEdgeDefDto } from './dto/create-node-edge-def.dto';
-import { UpdateNodeEdgeDefDto } from './dto/update-node-edge-def.dto';
-import { NodeEdgeDefsService } from './node-edge-defs.service';
+import { CreateCatalogNodeSocketDto } from './dto/create-catalog-node-socket.dto';
+import { UpdateCatalogNodeSocketDto } from './dto/update-catalog-node-socket.dto';
+import { CatalogNodeSocketsService } from './catalog-node-sockets.service';
 
-@ApiTags('Catalog — edge defs')
-@Controller('node-edge-defs')
-export class NodeEdgeDefsController {
-  constructor(private readonly service: NodeEdgeDefsService) {}
+@ApiTags('Catalog — node sockets')
+@Controller('catalog-node-sockets')
+export class CatalogNodeSocketsController {
+  constructor(private readonly service: CatalogNodeSocketsService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create input/output port on a catalog version' })
-  create(@Body() dto: CreateNodeEdgeDefDto) {
+  create(@Body() dto: CreateCatalogNodeSocketDto) {
     return this.service.create(dto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'List edge defs' })
+  @ApiOperation({ summary: 'List catalog node sockets' })
   findAll() {
     return this.service.findAll();
   }
 
   @Get(':id')
   @ApiEntityIdParam()
-  @ApiOperation({ summary: 'Get edge def by id' })
+  @ApiOperation({ summary: 'Get catalog node socket by id' })
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
   @Patch(':id')
   @ApiEntityIdParam()
-  @ApiOperation({ summary: 'Update edge def' })
-  update(@Param('id') id: string, @Body() dto: UpdateNodeEdgeDefDto) {
+  @ApiOperation({ summary: 'Update catalog node socket' })
+  update(@Param('id') id: string, @Body() dto: UpdateCatalogNodeSocketDto) {
     return this.service.update(id, dto);
   }
 

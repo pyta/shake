@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 
-export class CreateNodeEdgeRuleDefDto {
+export class CreateCatalogNodeSocketRuleDto {
   @ApiProperty({ example: '1', description: 'FK to catalog_node_versions.id' })
   @IsString()
   catalogNodeVersionId: string;

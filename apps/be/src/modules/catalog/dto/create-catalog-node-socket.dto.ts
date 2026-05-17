@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsIn, IsInt, IsOptional, IsString, MaxLength } from 'class-validator';
 
-export class CreateNodeEdgeDefDto {
+export class CreateCatalogNodeSocketDto {
   @ApiProperty({ example: '1', description: 'FK to catalog_node_versions.id' })
   @IsString()
   catalogNodeVersionId: string;
