@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginate } from 'nestjs-paginate';
-import { Repository, type FindOptionsWhere } from 'typeorm';
+import { Repository } from 'typeorm';
 import {
   buildPaginateQuery,
   type PaginatedResult,
@@ -15,6 +15,7 @@ import {
 } from './dto/list-board-node-props-query.dto';
 import { UpdateBoardNodePropDto } from './dto/update-board-node-prop.dto';
 import { BoardsService } from './boards.service';
+import { buildWhere } from './helpers/board-node-props-where';
 
 @Injectable()
 export class BoardNodePropsService {
@@ -22,7 +23,7 @@ export class BoardNodePropsService {
     @InjectRepository(BoardNodeProp)
     private readonly repo: Repository<BoardNodeProp>,
     private readonly boardsService: BoardsService,
-  ) {}
+  ) { }
 
   create(dto: CreateBoardNodePropDto) {
     const row = this.repo.create(dto);
@@ -34,24 +35,20 @@ export class BoardNodePropsService {
     query: ListBoardNodePropsQueryDto,
   ): Promise<PaginatedResult<BoardNodeProp>> {
     await this.boardsService.assertExists(boardId);
+
     const paginateQuery = buildPaginateQuery(
       query,
       BOARD_NODE_PROP_SORT_WHITELIST,
     );
-    const where: FindOptionsWhere<BoardNodeProp> = { boardId };
-    if (query.nodeId) {
-      where.nodeId = query.nodeId;
-    }
-    if (query.catalogNodePropertyId) {
-      where.catalogNodePropertyId = query.catalogNodePropertyId;
-    }
+
     const result = await paginate(paginateQuery, this.repo, {
-      where,
+      where: buildWhere(boardId, query),
       sortableColumns: [...BOARD_NODE_PROP_SORT_WHITELIST],
       defaultSortBy: [['id', 'ASC']],
       maxLimit: 100,
       defaultLimit: 20,
     });
+
     return toPaginatedResult(result);
   }
 

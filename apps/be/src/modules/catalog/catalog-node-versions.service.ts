@@ -15,6 +15,7 @@ import {
 } from './dto/list-catalog-node-versions-query.dto';
 import { UpdateCatalogNodeVersionDto } from './dto/update-catalog-node-version.dto';
 import { CatalogNodesService } from './catalog-nodes.service';
+import { buildListQueryBuilder } from './helpers/catalog-node-versions-where';
 
 @Injectable()
 export class CatalogNodeVersionsService {
@@ -43,19 +44,7 @@ export class CatalogNodeVersionsService {
       query,
       CATALOG_NODE_VERSION_SORT_WHITELIST,
     );
-    const qb = this.repo
-      .createQueryBuilder('version')
-      .where('version.catalogNodeId = :catalogNodeId', { catalogNodeId });
-
-    if (!query.includeDeprecated) {
-      qb.andWhere('version.deprecatedAt IS NULL');
-      if (query.isActive === undefined) {
-        qb.andWhere('version.isActive = :defaultActive', { defaultActive: true });
-      }
-    }
-    if (query.isActive !== undefined) {
-      qb.andWhere('version.isActive = :isActive', { isActive: query.isActive });
-    }
+    const qb = buildListQueryBuilder(this.repo, catalogNodeId, query);
 
     const result = await paginate(paginateQuery, qb, {
       sortableColumns: [...CATALOG_NODE_VERSION_SORT_WHITELIST],

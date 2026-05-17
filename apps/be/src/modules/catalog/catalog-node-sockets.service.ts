@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginate } from 'nestjs-paginate';
-import { Repository, type FindOptionsWhere } from 'typeorm';
+import { Repository } from 'typeorm';
 import {
   buildPaginateQuery,
   type PaginatedResult,
@@ -15,6 +15,7 @@ import {
 } from './dto/list-catalog-node-sockets-query.dto';
 import { UpdateCatalogNodeSocketDto } from './dto/update-catalog-node-socket.dto';
 import { CatalogNodeVersionsService } from './catalog-node-versions.service';
+import { buildWhere } from './helpers/catalog-node-sockets-where';
 
 @Injectable()
 export class CatalogNodeSocketsService {
@@ -43,12 +44,8 @@ export class CatalogNodeSocketsService {
       query,
       CATALOG_NODE_SOCKET_SORT_WHITELIST,
     );
-    const where: FindOptionsWhere<CatalogNodeSocket> = { catalogNodeVersionId };
-    if (query.type) {
-      where.type = query.type;
-    }
     const result = await paginate(paginateQuery, this.repo, {
-      where,
+      where: buildWhere(catalogNodeVersionId, query),
       sortableColumns: [...CATALOG_NODE_SOCKET_SORT_WHITELIST],
       defaultSortBy: [['id', 'ASC']],
       searchableColumns: ['name'],

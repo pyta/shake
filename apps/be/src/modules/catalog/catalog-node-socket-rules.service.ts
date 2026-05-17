@@ -15,6 +15,7 @@ import {
 } from './dto/list-catalog-node-socket-rules-query.dto';
 import { UpdateCatalogNodeSocketRuleDto } from './dto/update-catalog-node-socket-rule.dto';
 import { CatalogNodeVersionsService } from './catalog-node-versions.service';
+import { buildWhere } from './helpers/catalog-node-socket-rules-where';
 
 @Injectable()
 export class CatalogNodeSocketRulesService {
@@ -39,7 +40,7 @@ export class CatalogNodeSocketRulesService {
       CATALOG_NODE_SOCKET_RULE_SORT_WHITELIST,
     );
     const result = await paginate(paginateQuery, this.repo, {
-      where: { catalogNodeVersionId },
+      where: buildWhere(catalogNodeVersionId, query),
       sortableColumns: [...CATALOG_NODE_SOCKET_RULE_SORT_WHITELIST],
       defaultSortBy: [['id', 'ASC']],
       maxLimit: 100,

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { paginate } from 'nestjs-paginate';
-import { DataSource, type FindOptionsWhere } from 'typeorm';
+import { DataSource } from 'typeorm';
 import {
   buildPaginateQuery,
   type PaginatedResult,
@@ -20,6 +20,7 @@ import {
 } from './dto/list-board-nodes-query.dto';
 import { UpdateBoardNodeDto } from './dto/update-board-node.dto';
 import { BoardsService } from './boards.service';
+import { buildWhere } from './helpers/board-nodes-where';
 
 function parseBoardNodeIncludes(include?: string): string[] {
   if (!include?.trim()) {
@@ -81,13 +82,9 @@ export class BoardNodesService {
     await this.boardsService.assertExists(boardId);
     const paginateQuery = buildPaginateQuery(query, BOARD_NODE_SORT_WHITELIST);
     const repo = this.dataSource.getRepository(BoardNode);
-    const where: FindOptionsWhere<BoardNode> = { boardId };
-    if (query.catalogNodeVersionId) {
-      where.catalogNodeVersionId = query.catalogNodeVersionId;
-    }
     const relations = parseBoardNodeIncludes(query.include);
     const result = await paginate(paginateQuery, repo, {
-      where,
+      where: buildWhere(boardId, query),
       sortableColumns: [...BOARD_NODE_SORT_WHITELIST],
       defaultSortBy: [['id', 'ASC']],
       searchableColumns: ['value'],

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { paginate } from 'nestjs-paginate';
-import { Repository, type FindOptionsWhere } from 'typeorm';
+import { Repository } from 'typeorm';
 import {
   buildPaginateQuery,
   type PaginatedResult,
@@ -15,6 +15,7 @@ import {
 } from './dto/list-board-node-connections-query.dto';
 import { UpdateBoardNodeConnectionDto } from './dto/update-board-node-connection.dto';
 import { BoardsService } from './boards.service';
+import { buildWhere } from './helpers/board-node-connections-where';
 
 @Injectable()
 export class BoardNodeConnectionsService {
@@ -22,7 +23,7 @@ export class BoardNodeConnectionsService {
     @InjectRepository(BoardNodeConnection)
     private readonly repo: Repository<BoardNodeConnection>,
     private readonly boardsService: BoardsService,
-  ) {}
+  ) { }
 
   create(dto: CreateBoardNodeConnectionDto) {
     const row = this.repo.create({
@@ -37,24 +38,20 @@ export class BoardNodeConnectionsService {
     query: ListBoardNodeConnectionsQueryDto,
   ): Promise<PaginatedResult<BoardNodeConnection>> {
     await this.boardsService.assertExists(boardId);
+
     const paginateQuery = buildPaginateQuery(
       query,
       BOARD_NODE_CONNECTION_SORT_WHITELIST,
     );
-    const where: FindOptionsWhere<BoardNodeConnection> = { boardId };
-    if (query.fromNodeSocketId) {
-      where.fromNodeSocketId = query.fromNodeSocketId;
-    }
-    if (query.toNodeSocketId) {
-      where.toNodeSocketId = query.toNodeSocketId;
-    }
+
     const result = await paginate(paginateQuery, this.repo, {
-      where,
+      where: buildWhere(boardId, query),
       sortableColumns: [...BOARD_NODE_CONNECTION_SORT_WHITELIST],
       defaultSortBy: [['id', 'ASC']],
       maxLimit: 100,
       defaultLimit: 20,
     });
+
     return toPaginatedResult(result);
   }
 
