@@ -1,4 +1,4 @@
-# API — list pagination & search (plan)
+# API — list pagination & search
 
 Design notes for adding **pagination**, **filters**, and **text search** to NestJS list endpoints.
 
@@ -80,7 +80,7 @@ Service flow:
 3. Map library output → `PaginatedResult<T>` via shared helper.
 4. Apply custom search (`q` / `ILIKE`) and defaults (e.g. catalog version deprecation) in query config or pre-query hooks where the library does not cover them.
 
-### List response contract (**decided**)
+### List response contract
 
 All list endpoints return a **paginated envelope** (not bare `T[]`, not `Link` headers). Change from today’s `T[]` to:
 
@@ -97,7 +97,6 @@ All list endpoints return a **paginated envelope** (not bare `T[]`, not `Link` h
 ```
 
 - Keep `GET /resource/:id` unchanged (single entity).
-- Update `apps/fe/doc/service/service.md` and FE `list()` methods when implemented.
 - Document query params in OpenAPI via DTO `@ApiProperty` / `@ApiQuery`.
 
 ### Search vs filters

@@ -1,0 +1,3418 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "App_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "example": "Hello World!"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Liveness / root",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/catalog-nodes": {
+      "post": {
+        "operationId": "CatalogNodes_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCatalogNodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogNode"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create logical catalog node type (slug)",
+        "tags": [
+          "Catalog - nodes"
+        ]
+      },
+      "get": {
+        "operationId": "CatalogNodes_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Column to sort by (resource-specific whitelist)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "ASC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Text search (maps to searchable columns per endpoint)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedCatalogNodes"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List catalog nodes (paginated)",
+        "tags": [
+          "Catalog - nodes"
+        ]
+      }
+    },
+    "/catalog-nodes/{id}": {
+      "get": {
+        "operationId": "CatalogNodes_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogNode"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get catalog node by id",
+        "tags": [
+          "Catalog - nodes"
+        ]
+      },
+      "patch": {
+        "operationId": "CatalogNodes_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCatalogNodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogNode"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update catalog node",
+        "tags": [
+          "Catalog - nodes"
+        ]
+      },
+      "delete": {
+        "description": "Hard delete; cascades to versions when no FKs block it.",
+        "operationId": "CatalogNodes_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Delete catalog node type",
+        "tags": [
+          "Catalog - nodes"
+        ]
+      }
+    },
+    "/catalog-nodes/{catalogNodeId}/versions": {
+      "get": {
+        "operationId": "CatalogNodeVersionsList_findAll",
+        "parameters": [
+          {
+            "name": "catalogNodeId",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Column to sort by (resource-specific whitelist)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "ASC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Text search (maps to searchable columns per endpoint)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "includeDeprecated",
+            "required": false,
+            "in": "query",
+            "description": "When true, include deprecated versions (deprecatedAt set)",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedCatalogNodeVersions"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List catalog versions for a node type (paginated)",
+        "tags": [
+          "Catalog - nodes"
+        ]
+      }
+    },
+    "/catalog-node-versions/{catalogNodeVersionId}/sockets": {
+      "get": {
+        "operationId": "CatalogNodeSocketsList_findAll",
+        "parameters": [
+          {
+            "name": "catalogNodeVersionId",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Column to sort by (resource-specific whitelist)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "ASC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Text search (maps to searchable columns per endpoint)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "input",
+                "output"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedCatalogNodeSockets"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List sockets on a catalog version (paginated)",
+        "tags": [
+          "Catalog - node sockets"
+        ]
+      }
+    },
+    "/catalog-node-versions/{catalogNodeVersionId}/properties": {
+      "get": {
+        "operationId": "CatalogNodePropertiesList_findAll",
+        "parameters": [
+          {
+            "name": "catalogNodeVersionId",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Column to sort by (resource-specific whitelist)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "ASC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Text search (maps to searchable columns per endpoint)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isRequired",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedCatalogNodeProperties"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List property schemas on a catalog version (paginated)",
+        "tags": [
+          "Catalog - node properties"
+        ]
+      }
+    },
+    "/catalog-node-versions/{catalogNodeVersionId}/socket-rules": {
+      "get": {
+        "operationId": "CatalogNodeSocketRulesList_findAll",
+        "parameters": [
+          {
+            "name": "catalogNodeVersionId",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Column to sort by (resource-specific whitelist)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "ASC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Text search (maps to searchable columns per endpoint)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedCatalogNodeSocketRules"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List socket rules on a catalog version (paginated)",
+        "tags": [
+          "Catalog - socket rules"
+        ]
+      }
+    },
+    "/catalog-node-versions": {
+      "post": {
+        "operationId": "CatalogNodeVersions_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCatalogNodeVersionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogNodeVersion"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create immutable catalog version for a node type",
+        "tags": [
+          "Catalog - node versions"
+        ]
+      }
+    },
+    "/catalog-node-versions/{id}": {
+      "get": {
+        "operationId": "CatalogNodeVersions_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogNodeVersion"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get catalog node version by id",
+        "tags": [
+          "Catalog - node versions"
+        ]
+      },
+      "patch": {
+        "operationId": "CatalogNodeVersions_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCatalogNodeVersionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogNodeVersion"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update catalog node version (metadata / flags)",
+        "tags": [
+          "Catalog - node versions"
+        ]
+      },
+      "delete": {
+        "description": "Sets deprecatedAt and isActive=false; returns the updated row.",
+        "operationId": "CatalogNodeVersions_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogNodeVersion"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Deprecate catalog node version",
+        "tags": [
+          "Catalog - node versions"
+        ]
+      }
+    },
+    "/catalog-node-sockets": {
+      "post": {
+        "operationId": "CatalogNodeSockets_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCatalogNodeSocketDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogNodeSocket"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create input/output port on a catalog version",
+        "tags": [
+          "Catalog - node sockets"
+        ]
+      }
+    },
+    "/catalog-node-sockets/{id}": {
+      "get": {
+        "operationId": "CatalogNodeSockets_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogNodeSocket"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get catalog node socket by id",
+        "tags": [
+          "Catalog - node sockets"
+        ]
+      },
+      "patch": {
+        "operationId": "CatalogNodeSockets_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCatalogNodeSocketDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogNodeSocket"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update catalog node socket",
+        "tags": [
+          "Catalog - node sockets"
+        ]
+      },
+      "delete": {
+        "operationId": "CatalogNodeSockets_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Delete catalog node socket",
+        "tags": [
+          "Catalog - node sockets"
+        ]
+      }
+    },
+    "/catalog-node-socket-rules": {
+      "post": {
+        "operationId": "CatalogNodeSocketRules_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCatalogNodeSocketRuleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogNodeSocketRule"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create allowed socket pair on a catalog version",
+        "tags": [
+          "Catalog - socket rules"
+        ]
+      }
+    },
+    "/catalog-node-socket-rules/{id}": {
+      "get": {
+        "operationId": "CatalogNodeSocketRules_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogNodeSocketRule"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get catalog node socket rule by id",
+        "tags": [
+          "Catalog - socket rules"
+        ]
+      },
+      "patch": {
+        "operationId": "CatalogNodeSocketRules_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCatalogNodeSocketRuleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogNodeSocketRule"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update catalog node socket rule",
+        "tags": [
+          "Catalog - socket rules"
+        ]
+      },
+      "delete": {
+        "operationId": "CatalogNodeSocketRules_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Delete catalog node socket rule",
+        "tags": [
+          "Catalog - socket rules"
+        ]
+      }
+    },
+    "/catalog-node-properties": {
+      "post": {
+        "operationId": "CatalogNodeProperties_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCatalogNodePropertyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogNodeProperty"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create property schema on a catalog version",
+        "tags": [
+          "Catalog - node properties"
+        ]
+      }
+    },
+    "/catalog-node-properties/{id}": {
+      "get": {
+        "operationId": "CatalogNodeProperties_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogNodeProperty"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get catalog node property by id",
+        "tags": [
+          "Catalog - node properties"
+        ]
+      },
+      "patch": {
+        "operationId": "CatalogNodeProperties_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCatalogNodePropertyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogNodeProperty"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update catalog node property",
+        "tags": [
+          "Catalog - node properties"
+        ]
+      },
+      "delete": {
+        "operationId": "CatalogNodeProperties_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Delete catalog node property",
+        "tags": [
+          "Catalog - node properties"
+        ]
+      }
+    },
+    "/boards": {
+      "post": {
+        "operationId": "Boards_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBoardDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Board"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create board",
+        "tags": [
+          "Boards"
+        ]
+      },
+      "get": {
+        "operationId": "Boards_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Column to sort by (resource-specific whitelist)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "ASC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Text search (maps to searchable columns per endpoint)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedBoards"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List boards (paginated)",
+        "tags": [
+          "Boards"
+        ]
+      }
+    },
+    "/boards/{id}": {
+      "get": {
+        "operationId": "Boards_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Board"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get board by id",
+        "tags": [
+          "Boards"
+        ]
+      },
+      "patch": {
+        "operationId": "Boards_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBoardDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Board"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update board (name, snap)",
+        "tags": [
+          "Boards"
+        ]
+      },
+      "delete": {
+        "operationId": "Boards_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Soft-delete board",
+        "tags": [
+          "Boards"
+        ]
+      }
+    },
+    "/boards/{boardId}/nodes": {
+      "get": {
+        "operationId": "BoardNodesList_findAll",
+        "parameters": [
+          {
+            "name": "boardId",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Column to sort by (resource-specific whitelist)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "ASC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Text search (maps to searchable columns per endpoint)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "catalogNodeVersionId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by pinned catalog version id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "include",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated relations: sockets, catalogNodeVersion",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedBoardNodes"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List board nodes for a board (paginated)",
+        "tags": [
+          "Boards"
+        ]
+      }
+    },
+    "/boards/{boardId}/connections": {
+      "get": {
+        "operationId": "BoardNodeConnectionsList_findAll",
+        "parameters": [
+          {
+            "name": "boardId",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Column to sort by (resource-specific whitelist)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "ASC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Text search (maps to searchable columns per endpoint)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromNodeSocketId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "toNodeSocketId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedBoardNodeConnections"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List connections for a board (paginated)",
+        "tags": [
+          "Boards"
+        ]
+      }
+    },
+    "/boards/{boardId}/props": {
+      "get": {
+        "operationId": "BoardNodePropsList_findAll",
+        "parameters": [
+          {
+            "name": "boardId",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Column to sort by (resource-specific whitelist)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "ASC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Text search (maps to searchable columns per endpoint)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nodeId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "catalogNodePropertyId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedBoardNodeProps"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List board node props for a board (paginated)",
+        "tags": [
+          "Boards"
+        ]
+      }
+    },
+    "/board-nodes": {
+      "post": {
+        "operationId": "BoardNodes_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBoardNodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardNode"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Place a node on a board (pins catalog version)",
+        "tags": [
+          "Board - nodes"
+        ]
+      }
+    },
+    "/board-nodes/{id}": {
+      "get": {
+        "operationId": "BoardNodes_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardNode"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get board node by id",
+        "tags": [
+          "Board - nodes"
+        ]
+      },
+      "patch": {
+        "operationId": "BoardNodes_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBoardNodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardNode"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update board node",
+        "tags": [
+          "Board - nodes"
+        ]
+      },
+      "delete": {
+        "operationId": "BoardNodes_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Soft-delete board node",
+        "tags": [
+          "Board - nodes"
+        ]
+      }
+    },
+    "/board-node-connections": {
+      "post": {
+        "operationId": "BoardNodeConnections_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBoardNodeConnectionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardNodeConnection"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create connection between two board nodes",
+        "tags": [
+          "Board - connections"
+        ]
+      }
+    },
+    "/board-node-connections/{id}": {
+      "get": {
+        "operationId": "BoardNodeConnections_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardNodeConnection"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get connection by id",
+        "tags": [
+          "Board - connections"
+        ]
+      },
+      "patch": {
+        "operationId": "BoardNodeConnections_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBoardNodeConnectionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardNodeConnection"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update connection",
+        "tags": [
+          "Board - connections"
+        ]
+      },
+      "delete": {
+        "operationId": "BoardNodeConnections_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Soft-delete connection",
+        "tags": [
+          "Board - connections"
+        ]
+      }
+    },
+    "/board-node-props": {
+      "post": {
+        "operationId": "BoardNodeProps_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBoardNodePropDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardNodeProp"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Set or create runtime prop value for a board node",
+        "tags": [
+          "Board - node props"
+        ]
+      }
+    },
+    "/board-node-props/{id}": {
+      "get": {
+        "operationId": "BoardNodeProps_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardNodeProp"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get board node prop by id",
+        "tags": [
+          "Board - node props"
+        ]
+      },
+      "patch": {
+        "operationId": "BoardNodeProps_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBoardNodePropDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardNodeProp"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update board node prop value",
+        "tags": [
+          "Board - node props"
+        ]
+      },
+      "delete": {
+        "operationId": "BoardNodeProps_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Soft-delete board node prop",
+        "tags": [
+          "Board - node props"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Shake API",
+    "description": "REST API for the **node catalog** (toolbox definitions) and **board graph** (runtime nodes, connections, props).\n\nEntity IDs are `bigint` in PostgreSQL and serialized as **strings** in JSON.",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Liveness / readiness"
+    },
+    {
+      "name": "Boards",
+      "description": "Board library and board-scoped paginated lists (`/boards`, `/boards/:boardId/nodes|connections|props`)"
+    },
+    {
+      "name": "Board - nodes",
+      "description": "Place and manage nodes on boards (`/board-nodes` CRUD)"
+    },
+    {
+      "name": "Board - connections",
+      "description": "Edges between board node sockets (`/board-node-connections` CRUD)"
+    },
+    {
+      "name": "Board - node props",
+      "description": "Runtime property values on board nodes (`/board-node-props` CRUD)"
+    },
+    {
+      "name": "Catalog - nodes",
+      "description": "Logical node types / toolbox entries (`GET /catalog-nodes` paginated)"
+    },
+    {
+      "name": "Catalog - node versions",
+      "description": "Immutable versions per node type (nested list + `/catalog-node-versions` CRUD)"
+    },
+    {
+      "name": "Catalog - node sockets",
+      "description": "Input/output port definitions on a version (nested list + CRUD)"
+    },
+    {
+      "name": "Catalog - node properties",
+      "description": "Property schemas on a version (nested list + CRUD)"
+    },
+    {
+      "name": "Catalog - socket rules",
+      "description": "Allowed socket pairs on a version (nested list + CRUD)"
+    }
+  ],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "CreateCatalogNodeDto": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "maxLength": 128,
+            "example": "tile"
+          }
+        },
+        "required": [
+          "slug"
+        ]
+      },
+      "CatalogNode": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "updatedById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "slug": {
+            "type": "string",
+            "example": "http-request",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "slug"
+        ]
+      },
+      "PaginatedMetaDto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "number",
+            "example": 20,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "total": {
+            "type": "number",
+            "example": 142,
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 8,
+            "minimum": 0
+          }
+        },
+        "required": [
+          "page",
+          "pageSize",
+          "total",
+          "totalPages"
+        ]
+      },
+      "PaginatedCatalogNodes": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogNode"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginatedMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UpdateCatalogNodeDto": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "maxLength": 128,
+            "example": "tile"
+          }
+        }
+      },
+      "CatalogNodeVersion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "updatedById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "catalogNodeId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "version": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "HTTP Request v1",
+            "maxLength": 255
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "deprecatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "catalogNodeId",
+          "version",
+          "name",
+          "isActive",
+          "deprecatedAt"
+        ]
+      },
+      "PaginatedCatalogNodeVersions": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogNodeVersion"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginatedMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "CatalogNodeSocket": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "updatedById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "catalogNodeVersionId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "input",
+              "output"
+            ],
+            "example": "input"
+          },
+          "name": {
+            "type": "string",
+            "example": "body",
+            "maxLength": 255
+          },
+          "limit": {
+            "type": "object",
+            "example": 1,
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "catalogNodeVersionId",
+          "type",
+          "name"
+        ]
+      },
+      "PaginatedCatalogNodeSockets": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogNodeSocket"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginatedMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "CatalogNodeProperty": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "updatedById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "catalogNodeVersionId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "type": {
+            "type": "string",
+            "example": "string",
+            "maxLength": 64
+          },
+          "defaultValue": {
+            "type": "object",
+            "nullable": true
+          },
+          "isRequired": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "catalogNodeVersionId",
+          "type",
+          "isRequired"
+        ]
+      },
+      "PaginatedCatalogNodeProperties": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogNodeProperty"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginatedMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "CatalogNodeSocketRule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "updatedById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "catalogNodeVersionId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "catalogNodeSocketFromId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "catalogNodeSocketToId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "catalogNodeVersionId",
+          "catalogNodeSocketFromId",
+          "catalogNodeSocketToId"
+        ]
+      },
+      "PaginatedCatalogNodeSocketRules": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogNodeSocketRule"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginatedMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "CreateCatalogNodeVersionDto": {
+        "type": "object",
+        "properties": {
+          "catalogNodeId": {
+            "type": "string",
+            "example": "1",
+            "description": "FK to catalog_nodes.id"
+          },
+          "version": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "example": "Tile"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "deprecatedAt": {
+            "type": "string",
+            "nullable": true,
+            "example": "2026-01-01T00:00:00.000Z",
+            "description": "When set, version is treated as deprecated in the toolbox"
+          }
+        },
+        "required": [
+          "catalogNodeId",
+          "version",
+          "name"
+        ]
+      },
+      "UpdateCatalogNodeVersionDto": {
+        "type": "object",
+        "properties": {
+          "catalogNodeId": {
+            "type": "string",
+            "example": "1",
+            "description": "FK to catalog_nodes.id"
+          },
+          "version": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "example": "Tile"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "deprecatedAt": {
+            "type": "string",
+            "nullable": true,
+            "example": "2026-01-01T00:00:00.000Z",
+            "description": "When set, version is treated as deprecated in the toolbox"
+          }
+        }
+      },
+      "CreateCatalogNodeSocketDto": {
+        "type": "object",
+        "properties": {
+          "catalogNodeVersionId": {
+            "type": "string",
+            "example": "1",
+            "description": "FK to catalog_node_versions.id"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "input",
+              "output"
+            ],
+            "example": "input"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "example": "children"
+          },
+          "limit": {
+            "type": "number",
+            "nullable": true,
+            "description": "Max connections allowed to this socket (null = unlimited)"
+          }
+        },
+        "required": [
+          "catalogNodeVersionId",
+          "type",
+          "name"
+        ]
+      },
+      "UpdateCatalogNodeSocketDto": {
+        "type": "object",
+        "properties": {
+          "catalogNodeVersionId": {
+            "type": "string",
+            "example": "1",
+            "description": "FK to catalog_node_versions.id"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "input",
+              "output"
+            ],
+            "example": "input"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "example": "children"
+          },
+          "limit": {
+            "type": "number",
+            "nullable": true,
+            "description": "Max connections allowed to this socket (null = unlimited)"
+          }
+        }
+      },
+      "CreateCatalogNodeSocketRuleDto": {
+        "type": "object",
+        "properties": {
+          "catalogNodeVersionId": {
+            "type": "string",
+            "example": "1",
+            "description": "FK to catalog_node_versions.id"
+          },
+          "catalogNodeSocketFromId": {
+            "type": "string",
+            "example": "10",
+            "description": "FK to catalog_node_sockets.id"
+          },
+          "catalogNodeSocketToId": {
+            "type": "string",
+            "example": "11",
+            "description": "FK to catalog_node_sockets.id"
+          }
+        },
+        "required": [
+          "catalogNodeVersionId",
+          "catalogNodeSocketFromId",
+          "catalogNodeSocketToId"
+        ]
+      },
+      "UpdateCatalogNodeSocketRuleDto": {
+        "type": "object",
+        "properties": {
+          "catalogNodeVersionId": {
+            "type": "string",
+            "example": "1",
+            "description": "FK to catalog_node_versions.id"
+          },
+          "catalogNodeSocketFromId": {
+            "type": "string",
+            "example": "10",
+            "description": "FK to catalog_node_sockets.id"
+          },
+          "catalogNodeSocketToId": {
+            "type": "string",
+            "example": "11",
+            "description": "FK to catalog_node_sockets.id"
+          }
+        }
+      },
+      "CreateCatalogNodePropertyDto": {
+        "type": "object",
+        "properties": {
+          "catalogNodeVersionId": {
+            "type": "string",
+            "example": "1",
+            "description": "FK to catalog_node_versions.id"
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 64,
+            "example": "text",
+            "description": "e.g. `text`, `integer`"
+          },
+          "defaultValue": {
+            "type": "object",
+            "description": "JSON value; shape depends on `type`",
+            "example": "hello"
+          },
+          "isRequired": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "catalogNodeVersionId",
+          "type"
+        ]
+      },
+      "UpdateCatalogNodePropertyDto": {
+        "type": "object",
+        "properties": {
+          "catalogNodeVersionId": {
+            "type": "string",
+            "example": "1",
+            "description": "FK to catalog_node_versions.id"
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 64,
+            "example": "text",
+            "description": "e.g. `text`, `integer`"
+          },
+          "defaultValue": {
+            "type": "object",
+            "description": "JSON value; shape depends on `type`",
+            "example": "hello"
+          },
+          "isRequired": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "CreateBoardDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "example": "My board"
+          },
+          "snap": {
+            "type": "object",
+            "nullable": true,
+            "description": "Presentation JSON (viewport, layout); optional",
+            "example": {
+              "zoom": 1,
+              "x": 0,
+              "y": 0
+            }
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "Board": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "updatedById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "example": "My board",
+            "maxLength": 255
+          },
+          "snap": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "name"
+        ]
+      },
+      "PaginatedBoards": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Board"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginatedMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UpdateBoardDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "example": "My board"
+          },
+          "snap": {
+            "type": "object",
+            "nullable": true,
+            "description": "Presentation JSON (viewport, layout); optional",
+            "example": {
+              "zoom": 1,
+              "x": 0,
+              "y": 0
+            }
+          }
+        }
+      },
+      "BoardNodeSocket": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "updatedById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "boardId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "nodeId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "catalogNodeSocketId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "boardId",
+          "nodeId",
+          "catalogNodeSocketId"
+        ]
+      },
+      "BoardNode": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "updatedById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "boardId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "catalogNodeVersionId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "value": {
+            "type": "object",
+            "example": "default payload",
+            "maxLength": 512,
+            "nullable": true
+          },
+          "sockets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoardNodeSocket"
+            }
+          },
+          "catalogNodeVersion": {
+            "$ref": "#/components/schemas/CatalogNodeVersion"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "boardId",
+          "catalogNodeVersionId"
+        ]
+      },
+      "PaginatedBoardNodes": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoardNode"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginatedMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "BoardNodeConnection": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "updatedById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "boardId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "fromNodeSocketId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "toNodeSocketId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "order": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "boardId",
+          "fromNodeSocketId",
+          "toNodeSocketId",
+          "order"
+        ]
+      },
+      "PaginatedBoardNodeConnections": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoardNodeConnection"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginatedMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "BoardNodeProp": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "updatedById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "boardId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "nodeId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "catalogNodePropertyId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "value": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "boardId",
+          "nodeId",
+          "catalogNodePropertyId"
+        ]
+      },
+      "PaginatedBoardNodeProps": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoardNodeProp"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginatedMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "CreateBoardNodeDto": {
+        "type": "object",
+        "properties": {
+          "boardId": {
+            "type": "string",
+            "example": "1",
+            "description": "FK to boards.id"
+          },
+          "catalogNodeVersionId": {
+            "type": "string",
+            "example": "1",
+            "description": "Pinned catalog version; FK to catalog_node_versions.id"
+          },
+          "value": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 512,
+            "example": "instance-meta",
+            "description": "Optional runtime value on the placed node"
+          }
+        },
+        "required": [
+          "boardId",
+          "catalogNodeVersionId"
+        ]
+      },
+      "UpdateBoardNodeDto": {
+        "type": "object",
+        "properties": {
+          "boardId": {
+            "type": "string",
+            "example": "1",
+            "description": "FK to boards.id"
+          },
+          "catalogNodeVersionId": {
+            "type": "string",
+            "example": "1",
+            "description": "Pinned catalog version; FK to catalog_node_versions.id"
+          },
+          "value": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 512,
+            "example": "instance-meta",
+            "description": "Optional runtime value on the placed node"
+          }
+        }
+      },
+      "CreateBoardNodeConnectionDto": {
+        "type": "object",
+        "properties": {
+          "boardId": {
+            "type": "string",
+            "example": "1",
+            "description": "FK to boards.id"
+          },
+          "fromNodeSocketId": {
+            "type": "string",
+            "example": "100",
+            "description": "FK to board_node_sockets.id"
+          },
+          "toNodeSocketId": {
+            "type": "string",
+            "example": "101",
+            "description": "FK to board_node_sockets.id"
+          },
+          "order": {
+            "type": "number",
+            "example": 0,
+            "description": "Ordering for parallel edges"
+          }
+        },
+        "required": [
+          "boardId",
+          "fromNodeSocketId",
+          "toNodeSocketId"
+        ]
+      },
+      "UpdateBoardNodeConnectionDto": {
+        "type": "object",
+        "properties": {
+          "boardId": {
+            "type": "string",
+            "example": "1",
+            "description": "FK to boards.id"
+          },
+          "fromNodeSocketId": {
+            "type": "string",
+            "example": "100",
+            "description": "FK to board_node_sockets.id"
+          },
+          "toNodeSocketId": {
+            "type": "string",
+            "example": "101",
+            "description": "FK to board_node_sockets.id"
+          },
+          "order": {
+            "type": "number",
+            "example": 0,
+            "description": "Ordering for parallel edges"
+          }
+        }
+      },
+      "CreateBoardNodePropDto": {
+        "type": "object",
+        "properties": {
+          "boardId": {
+            "type": "string",
+            "example": "1",
+            "description": "FK to boards.id"
+          },
+          "nodeId": {
+            "type": "string",
+            "example": "10",
+            "description": "FK to board_nodes.id"
+          },
+          "catalogNodePropertyId": {
+            "type": "string",
+            "example": "20",
+            "description": "FK to catalog_node_properties.id"
+          },
+          "value": {
+            "type": "object",
+            "description": "JSON value per catalog property type",
+            "example": 42
+          }
+        },
+        "required": [
+          "boardId",
+          "nodeId",
+          "catalogNodePropertyId"
+        ]
+      },
+      "UpdateBoardNodePropDto": {
+        "type": "object",
+        "properties": {
+          "boardId": {
+            "type": "string",
+            "example": "1",
+            "description": "FK to boards.id"
+          },
+          "nodeId": {
+            "type": "string",
+            "example": "10",
+            "description": "FK to board_nodes.id"
+          },
+          "catalogNodePropertyId": {
+            "type": "string",
+            "example": "20",
+            "description": "FK to catalog_node_properties.id"
+          },
+          "value": {
+            "type": "object",
+            "description": "JSON value per catalog property type",
+            "example": 42
+          }
+        }
+      },
+      "Audited": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "updatedById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "deletedAt"
+        ]
+      },
+      "CatalogStamped": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "updatedById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    }
+  }
+}

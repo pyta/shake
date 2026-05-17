@@ -1,17 +1,20 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiPaginatedOk } from '../../common/swagger/api-responses.decorator';
 import { ApiEntityIdParam } from '../../common/swagger/entity-id.decorator';
+import { PaginatedBoardNodeConnections } from '../../common/swagger/schemas';
 import { BoardNodeConnectionsService } from './board-node-connections.service';
 import { ListBoardNodeConnectionsQueryDto } from './dto/list-board-node-connections-query.dto';
 
 @ApiTags('Boards')
 @Controller('boards/:boardId/connections')
 export class BoardNodeConnectionsListController {
-  constructor(private readonly service: BoardNodeConnectionsService) { }
+  constructor(private readonly service: BoardNodeConnectionsService) {}
 
   @Get()
   @ApiEntityIdParam('boardId')
   @ApiOperation({ summary: 'List connections for a board (paginated)' })
+  @ApiPaginatedOk(PaginatedBoardNodeConnections)
   findAll(
     @Param('boardId') boardId: string,
     @Query() query: ListBoardNodeConnectionsQueryDto,

@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AppService } from './app.service';
 
 @ApiTags('Health')
@@ -9,6 +9,7 @@ export class AppController {
 
   @Get()
   @ApiOperation({ summary: 'Liveness / root' })
+  @ApiOkResponse({ schema: { type: 'string', example: 'Hello World!' } })
   getHello(): string {
     return this.appService.getHello();
   }

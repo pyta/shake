@@ -1,17 +1,17 @@
 import { INestApplication } from '@nestjs/common';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { PaginatedMetaDto } from './common/swagger/paginated-meta.dto';
+import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
+import { OPENAPI_EXTRA_MODELS } from './common/swagger/schemas';
 
 export const DEFAULT_SWAGGER_PATH = 'docs';
 
-export function setupSwagger(app: INestApplication): string {
-  const path = process.env.SWAGGER_PATH ?? DEFAULT_SWAGGER_PATH;
-
+export function buildOpenApiDocument(app: INestApplication): OpenAPIObject {
   const config = new DocumentBuilder()
     .setTitle('Shake API')
     .setDescription(
       [
         'REST API for the **node catalog** (toolbox definitions) and **board graph** (runtime nodes, connections, props).',
+        '',
+        'Entity IDs are `bigint` in PostgreSQL and serialized as **strings** in JSON.',
       ].join('\n'),
     )
     .setVersion('1.0')
@@ -54,11 +54,16 @@ export function setupSwagger(app: INestApplication): string {
     )
     .build();
 
-  const document = SwaggerModule.createDocument(app, config, {
+  return SwaggerModule.createDocument(app, config, {
     operationIdFactory: (controllerKey, methodKey) =>
       `${controllerKey.replace(/Controller$/i, '')}_${methodKey}`,
-    extraModels: [PaginatedMetaDto],
+    extraModels: [...OPENAPI_EXTRA_MODELS],
   });
+}
+
+export function setupSwagger(app: INestApplication): string {
+  const path = process.env.SWAGGER_PATH ?? DEFAULT_SWAGGER_PATH;
+  const document = buildOpenApiDocument(app);
 
   SwaggerModule.setup(path, app, document, {
     jsonDocumentUrl: `${path}/json`,
@@ -66,7 +71,6 @@ export function setupSwagger(app: INestApplication): string {
     swaggerOptions: {
       docExpansion: 'list',
       filter: true,
-      // Inlined order: serialized to swagger-ui-init.js (no outer closure).
       tagsSorter: (a, b) => {
         const order = [
           'Health',
@@ -80,9 +84,9 @@ export function setupSwagger(app: INestApplication): string {
           'Catalog - node properties',
           'Catalog - socket rules',
         ];
-        const rank = (tag) => {
+        const rank = (tag: { name?: string } | string) => {
           const name = typeof tag === 'string' ? tag : tag.name;
-          const i = order.indexOf(name);
+          const i = order.indexOf(name ?? '');
           return i === -1 ? 999 : i;
         };
         return rank(a) - rank(b);

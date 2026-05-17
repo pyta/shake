@@ -9,7 +9,17 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiCreatedEntity,
+  ApiDeleteNoContent,
+  ApiOkEntity,
+  ApiPaginatedOk,
+} from '../../common/swagger/api-responses.decorator';
 import { ApiEntityIdParam } from '../../common/swagger/entity-id.decorator';
+import {
+  CatalogNode,
+  PaginatedCatalogNodes,
+} from '../../common/swagger/schemas';
 import { CreateCatalogNodeDto } from './dto/create-catalog-node.dto';
 import { ListCatalogNodesQueryDto } from './dto/list-catalog-nodes-query.dto';
 import { UpdateCatalogNodeDto } from './dto/update-catalog-node.dto';
@@ -18,16 +28,18 @@ import { CatalogNodesService } from './catalog-nodes.service';
 @ApiTags('Catalog - nodes')
 @Controller('catalog-nodes')
 export class CatalogNodesController {
-  constructor(private readonly catalogNodesService: CatalogNodesService) { }
+  constructor(private readonly catalogNodesService: CatalogNodesService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create logical catalog node type (slug)' })
+  @ApiCreatedEntity(CatalogNode)
   create(@Body() dto: CreateCatalogNodeDto) {
     return this.catalogNodesService.create(dto);
   }
 
   @Get()
   @ApiOperation({ summary: 'List catalog nodes (paginated)' })
+  @ApiPaginatedOk(PaginatedCatalogNodes)
   findAll(@Query() query: ListCatalogNodesQueryDto) {
     return this.catalogNodesService.findAll(query);
   }
@@ -35,6 +47,7 @@ export class CatalogNodesController {
   @Get(':id')
   @ApiEntityIdParam()
   @ApiOperation({ summary: 'Get catalog node by id' })
+  @ApiOkEntity(CatalogNode)
   findOne(@Param('id') id: string) {
     return this.catalogNodesService.findOne(id);
   }
@@ -42,6 +55,7 @@ export class CatalogNodesController {
   @Patch(':id')
   @ApiEntityIdParam()
   @ApiOperation({ summary: 'Update catalog node' })
+  @ApiOkEntity(CatalogNode)
   update(@Param('id') id: string, @Body() dto: UpdateCatalogNodeDto) {
     return this.catalogNodesService.update(id, dto);
   }
@@ -52,6 +66,7 @@ export class CatalogNodesController {
     summary: 'Delete catalog node type',
     description: 'Hard delete; cascades to versions when no FKs block it.',
   })
+  @ApiDeleteNoContent()
   remove(@Param('id') id: string) {
     return this.catalogNodesService.remove(id);
   }

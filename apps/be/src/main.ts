@@ -1,8 +1,10 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { updateGlobalConfig } from 'nestjs-paginate';
 import { AppModule } from './app.module';
-import { setupSwagger } from './swagger';
+import { buildOpenApiDocument, setupSwagger } from './swagger';
 
 updateGlobalConfig({
   defaultLimit: 20,
@@ -18,6 +20,15 @@ async function bootstrap() {
       transform: true,
     }),
   );
+  if (process.env.EXPORT_OPENAPI === '1') {
+    const document = buildOpenApiDocument(app);
+    const outPath = resolve(process.cwd(), 'openapi.json');
+    writeFileSync(outPath, `${JSON.stringify(document, null, 2)}\n`, 'utf8');
+    await app.close();
+    Logger.log(`Wrote ${outPath}`, 'Bootstrap');
+    return;
+  }
+
   const swaggerPath = setupSwagger(app);
   const port = process.env.PORT ?? 3000;
   await app.listen(port);

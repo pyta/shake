@@ -20,7 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typeorm": "typeorm-ts-node-commonjs -d data-source.ts",
     "migration:run": "yarn typeorm migration:run",
-    "migration:generate": "yarn typeorm migration:generate"
+    "migration:generate": "yarn typeorm migration:generate",
+    "export:openapi": "nest build && node dist/src/scripts/export-openapi.js"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
