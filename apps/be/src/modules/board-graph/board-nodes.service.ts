@@ -1,17 +1,47 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { paginate } from 'nestjs-paginate';
+import { DataSource, type FindOptionsWhere } from 'typeorm';
+import {
+  buildPaginateQuery,
+  type PaginatedResult,
+  toPaginatedResult,
+} from '../../common/pagination';
 import { BoardNode } from '../../entities/board-node.entity';
 import { BoardNodeConnection } from '../../entities/board-node-connection.entity';
 import { BoardNodeProp } from '../../entities/board-node-prop.entity';
 import { BoardNodeSocket } from '../../entities/board-node-socket.entity';
 import { CatalogNodeSocket } from '../../entities/catalog-node-socket.entity';
 import { CreateBoardNodeDto } from './dto/create-board-node.dto';
+import {
+  BOARD_NODE_INCLUDE_WHITELIST,
+  BOARD_NODE_SORT_WHITELIST,
+  ListBoardNodesQueryDto,
+} from './dto/list-board-nodes-query.dto';
 import { UpdateBoardNodeDto } from './dto/update-board-node.dto';
+import { BoardsService } from './boards.service';
+
+function parseBoardNodeIncludes(include?: string): string[] {
+  if (!include?.trim()) {
+    return [];
+  }
+  const allowed = new Set<string>(BOARD_NODE_INCLUDE_WHITELIST);
+  return [
+    ...new Set(
+      include
+        .split(',')
+        .map((s) => s.trim())
+        .filter((key) => allowed.has(key)),
+    ),
+  ];
+}
 
 @Injectable()
 export class BoardNodesService {
-  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
+  constructor(
+    @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly boardsService: BoardsService,
+  ) {}
 
   async create(dto: CreateBoardNodeDto) {
     return this.dataSource.transaction(async (em) => {
@@ -44,11 +74,28 @@ export class BoardNodesService {
     });
   }
 
-  findAll() {
-    return this.dataSource.getRepository(BoardNode).find({
-      order: { id: 'ASC' },
-      relations: ['sockets', 'catalogNodeVersion'],
+  async findAllByBoard(
+    boardId: string,
+    query: ListBoardNodesQueryDto,
+  ): Promise<PaginatedResult<BoardNode>> {
+    await this.boardsService.assertExists(boardId);
+    const paginateQuery = buildPaginateQuery(query, BOARD_NODE_SORT_WHITELIST);
+    const repo = this.dataSource.getRepository(BoardNode);
+    const where: FindOptionsWhere<BoardNode> = { boardId };
+    if (query.catalogNodeVersionId) {
+      where.catalogNodeVersionId = query.catalogNodeVersionId;
+    }
+    const relations = parseBoardNodeIncludes(query.include);
+    const result = await paginate(paginateQuery, repo, {
+      where,
+      sortableColumns: [...BOARD_NODE_SORT_WHITELIST],
+      defaultSortBy: [['id', 'ASC']],
+      searchableColumns: ['value'],
+      relations,
+      maxLimit: 100,
+      defaultLimit: 20,
     });
+    return toPaginatedResult(result);
   }
 
   async findOne(id: string) {

@@ -13,21 +13,15 @@ import { CreateCatalogNodeSocketRuleDto } from './dto/create-catalog-node-socket
 import { UpdateCatalogNodeSocketRuleDto } from './dto/update-catalog-node-socket-rule.dto';
 import { CatalogNodeSocketRulesService } from './catalog-node-socket-rules.service';
 
-@ApiTags('Catalog — socket rules')
+@ApiTags('Catalog - socket rules')
 @Controller('catalog-node-socket-rules')
 export class CatalogNodeSocketRulesController {
-  constructor(private readonly service: CatalogNodeSocketRulesService) {}
+  constructor(private readonly service: CatalogNodeSocketRulesService) { }
 
   @Post()
   @ApiOperation({ summary: 'Create allowed socket pair on a catalog version' })
   create(@Body() dto: CreateCatalogNodeSocketRuleDto) {
     return this.service.create(dto);
-  }
-
-  @Get()
-  @ApiOperation({ summary: 'List catalog node socket rules' })
-  findAll() {
-    return this.service.findAll();
   }
 
   @Get(':id')

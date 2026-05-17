@@ -13,21 +13,15 @@ import { CreateCatalogNodeVersionDto } from './dto/create-catalog-node-version.d
 import { UpdateCatalogNodeVersionDto } from './dto/update-catalog-node-version.dto';
 import { CatalogNodeVersionsService } from './catalog-node-versions.service';
 
-@ApiTags('Catalog — node versions')
+@ApiTags('Catalog - node versions')
 @Controller('catalog-node-versions')
 export class CatalogNodeVersionsController {
-  constructor(private readonly service: CatalogNodeVersionsService) {}
+  constructor(private readonly service: CatalogNodeVersionsService) { }
 
   @Post()
   @ApiOperation({ summary: 'Create immutable catalog version for a node type' })
   create(@Body() dto: CreateCatalogNodeVersionDto) {
     return this.service.create(dto);
-  }
-
-  @Get()
-  @ApiOperation({ summary: 'List catalog node versions' })
-  findAll() {
-    return this.service.findAll();
   }
 
   @Get(':id')

@@ -1,15 +1,27 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { paginate } from 'nestjs-paginate';
+import { Repository, type FindOptionsWhere } from 'typeorm';
+import {
+  buildPaginateQuery,
+  type PaginatedResult,
+  toPaginatedResult,
+} from '../../common/pagination';
 import { BoardNodeConnection } from '../../entities/board-node-connection.entity';
 import { CreateBoardNodeConnectionDto } from './dto/create-board-node-connection.dto';
+import {
+  BOARD_NODE_CONNECTION_SORT_WHITELIST,
+  ListBoardNodeConnectionsQueryDto,
+} from './dto/list-board-node-connections-query.dto';
 import { UpdateBoardNodeConnectionDto } from './dto/update-board-node-connection.dto';
+import { BoardsService } from './boards.service';
 
 @Injectable()
 export class BoardNodeConnectionsService {
   constructor(
     @InjectRepository(BoardNodeConnection)
     private readonly repo: Repository<BoardNodeConnection>,
+    private readonly boardsService: BoardsService,
   ) {}
 
   create(dto: CreateBoardNodeConnectionDto) {
@@ -20,8 +32,30 @@ export class BoardNodeConnectionsService {
     return this.repo.save(row);
   }
 
-  findAll() {
-    return this.repo.find({ order: { id: 'ASC' } });
+  async findAllByBoard(
+    boardId: string,
+    query: ListBoardNodeConnectionsQueryDto,
+  ): Promise<PaginatedResult<BoardNodeConnection>> {
+    await this.boardsService.assertExists(boardId);
+    const paginateQuery = buildPaginateQuery(
+      query,
+      BOARD_NODE_CONNECTION_SORT_WHITELIST,
+    );
+    const where: FindOptionsWhere<BoardNodeConnection> = { boardId };
+    if (query.fromNodeSocketId) {
+      where.fromNodeSocketId = query.fromNodeSocketId;
+    }
+    if (query.toNodeSocketId) {
+      where.toNodeSocketId = query.toNodeSocketId;
+    }
+    const result = await paginate(paginateQuery, this.repo, {
+      where,
+      sortableColumns: [...BOARD_NODE_CONNECTION_SORT_WHITELIST],
+      defaultSortBy: [['id', 'ASC']],
+      maxLimit: 100,
+      defaultLimit: 20,
+    });
+    return toPaginatedResult(result);
   }
 
   async findOne(id: string) {

@@ -6,17 +6,19 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiEntityIdParam } from '../../common/swagger/entity-id.decorator';
 import { CreateCatalogNodeDto } from './dto/create-catalog-node.dto';
+import { ListCatalogNodesQueryDto } from './dto/list-catalog-nodes-query.dto';
 import { UpdateCatalogNodeDto } from './dto/update-catalog-node.dto';
 import { CatalogNodesService } from './catalog-nodes.service';
 
-@ApiTags('Catalog — nodes')
+@ApiTags('Catalog - nodes')
 @Controller('catalog-nodes')
 export class CatalogNodesController {
-  constructor(private readonly catalogNodesService: CatalogNodesService) {}
+  constructor(private readonly catalogNodesService: CatalogNodesService) { }
 
   @Post()
   @ApiOperation({ summary: 'Create logical catalog node type (slug)' })
@@ -25,9 +27,9 @@ export class CatalogNodesController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List catalog nodes' })
-  findAll() {
-    return this.catalogNodesService.findAll();
+  @ApiOperation({ summary: 'List catalog nodes (paginated)' })
+  findAll(@Query() query: ListCatalogNodesQueryDto) {
+    return this.catalogNodesService.findAll(query);
   }
 
   @Get(':id')

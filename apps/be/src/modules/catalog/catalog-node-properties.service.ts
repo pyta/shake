@@ -1,15 +1,27 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { paginate } from 'nestjs-paginate';
+import { Repository, type FindOptionsWhere } from 'typeorm';
+import {
+  buildPaginateQuery,
+  type PaginatedResult,
+  toPaginatedResult,
+} from '../../common/pagination';
 import { CatalogNodeProperty } from '../../entities/catalog-node-property.entity';
 import { CreateCatalogNodePropertyDto } from './dto/create-catalog-node-property.dto';
+import {
+  CATALOG_NODE_PROPERTY_SORT_WHITELIST,
+  ListCatalogNodePropertiesQueryDto,
+} from './dto/list-catalog-node-properties-query.dto';
 import { UpdateCatalogNodePropertyDto } from './dto/update-catalog-node-property.dto';
+import { CatalogNodeVersionsService } from './catalog-node-versions.service';
 
 @Injectable()
 export class CatalogNodePropertiesService {
   constructor(
     @InjectRepository(CatalogNodeProperty)
     private readonly repo: Repository<CatalogNodeProperty>,
+    private readonly catalogNodeVersionsService: CatalogNodeVersionsService,
   ) {}
 
   create(dto: CreateCatalogNodePropertyDto) {
@@ -20,8 +32,32 @@ export class CatalogNodePropertiesService {
     return this.repo.save(row);
   }
 
-  findAll() {
-    return this.repo.find({ order: { id: 'ASC' } });
+  async findAllByVersion(
+    catalogNodeVersionId: string,
+    query: ListCatalogNodePropertiesQueryDto,
+  ): Promise<PaginatedResult<CatalogNodeProperty>> {
+    await this.catalogNodeVersionsService.assertExists(catalogNodeVersionId);
+    const paginateQuery = buildPaginateQuery(
+      query,
+      CATALOG_NODE_PROPERTY_SORT_WHITELIST,
+    );
+    const where: FindOptionsWhere<CatalogNodeProperty> = {
+      catalogNodeVersionId,
+    };
+    if (query.type) {
+      where.type = query.type;
+    }
+    if (query.isRequired !== undefined) {
+      where.isRequired = query.isRequired;
+    }
+    const result = await paginate(paginateQuery, this.repo, {
+      where,
+      sortableColumns: [...CATALOG_NODE_PROPERTY_SORT_WHITELIST],
+      defaultSortBy: [['id', 'ASC']],
+      maxLimit: 100,
+      defaultLimit: 20,
+    });
+    return toPaginatedResult(result);
   }
 
   async findOne(id: string) {

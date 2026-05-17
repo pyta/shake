@@ -1,8 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { paginate } from 'nestjs-paginate';
 import { Repository } from 'typeorm';
+import {
+  buildPaginateQuery,
+  type PaginatedResult,
+  toPaginatedResult,
+} from '../../common/pagination';
 import { CatalogNode } from '../../entities/catalog-node.entity';
 import { CreateCatalogNodeDto } from './dto/create-catalog-node.dto';
+import {
+  CATALOG_NODE_SORT_WHITELIST,
+  ListCatalogNodesQueryDto,
+} from './dto/list-catalog-nodes-query.dto';
 import { UpdateCatalogNodeDto } from './dto/update-catalog-node.dto';
 
 @Injectable()
@@ -17,8 +27,18 @@ export class CatalogNodesService {
     return this.repo.save(row);
   }
 
-  findAll() {
-    return this.repo.find({ order: { id: 'ASC' } });
+  async findAll(
+    query: ListCatalogNodesQueryDto,
+  ): Promise<PaginatedResult<CatalogNode>> {
+    const paginateQuery = buildPaginateQuery(query, CATALOG_NODE_SORT_WHITELIST);
+    const result = await paginate(paginateQuery, this.repo, {
+      sortableColumns: [...CATALOG_NODE_SORT_WHITELIST],
+      defaultSortBy: [['id', 'ASC']],
+      searchableColumns: ['slug'],
+      maxLimit: 100,
+      defaultLimit: 20,
+    });
+    return toPaginatedResult(result);
   }
 
   async findOne(id: string) {
@@ -27,6 +47,10 @@ export class CatalogNodesService {
       throw new NotFoundException(`CatalogNode ${id} not found`);
     }
     return row;
+  }
+
+  async assertExists(id: string) {
+    await this.findOne(id);
   }
 
   async update(id: string, dto: UpdateCatalogNodeDto) {

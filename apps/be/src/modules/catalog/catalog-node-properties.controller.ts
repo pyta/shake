@@ -13,21 +13,15 @@ import { CreateCatalogNodePropertyDto } from './dto/create-catalog-node-property
 import { UpdateCatalogNodePropertyDto } from './dto/update-catalog-node-property.dto';
 import { CatalogNodePropertiesService } from './catalog-node-properties.service';
 
-@ApiTags('Catalog — node properties')
+@ApiTags('Catalog - node properties')
 @Controller('catalog-node-properties')
 export class CatalogNodePropertiesController {
-  constructor(private readonly service: CatalogNodePropertiesService) {}
+  constructor(private readonly service: CatalogNodePropertiesService) { }
 
   @Post()
   @ApiOperation({ summary: 'Create property schema on a catalog version' })
   create(@Body() dto: CreateCatalogNodePropertyDto) {
     return this.service.create(dto);
-  }
-
-  @Get()
-  @ApiOperation({ summary: 'List catalog node properties' })
-  findAll() {
-    return this.service.findAll();
   }
 
   @Get(':id')

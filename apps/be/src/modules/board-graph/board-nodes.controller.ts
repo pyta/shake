@@ -13,21 +13,15 @@ import { BoardNodesService } from './board-nodes.service';
 import { CreateBoardNodeDto } from './dto/create-board-node.dto';
 import { UpdateBoardNodeDto } from './dto/update-board-node.dto';
 
-@ApiTags('Board graph — nodes')
+@ApiTags('Board - nodes')
 @Controller('board-nodes')
 export class BoardNodesController {
-  constructor(private readonly service: BoardNodesService) {}
+  constructor(private readonly service: BoardNodesService) { }
 
   @Post()
   @ApiOperation({ summary: 'Place a node on a board (pins catalog version)' })
   create(@Body() dto: CreateBoardNodeDto) {
     return this.service.create(dto);
-  }
-
-  @Get()
-  @ApiOperation({ summary: 'List board nodes' })
-  findAll() {
-    return this.service.findAll();
   }
 
   @Get(':id')

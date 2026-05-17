@@ -6,11 +6,13 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiEntityIdParam } from '../../common/swagger/entity-id.decorator';
 import { BoardsService } from './boards.service';
 import { CreateBoardDto } from './dto/create-board.dto';
+import { ListBoardsQueryDto } from './dto/list-boards-query.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
 
 @ApiTags('Boards')
@@ -25,9 +27,9 @@ export class BoardsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List boards' })
-  findAll() {
-    return this.boardsService.findAll();
+  @ApiOperation({ summary: 'List boards (paginated)' })
+  findAll(@Query() query: ListBoardsQueryDto) {
+    return this.boardsService.findAll(query);
   }
 
   @Get(':id')

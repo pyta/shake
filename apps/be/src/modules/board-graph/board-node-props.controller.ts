@@ -13,10 +13,10 @@ import { BoardNodePropsService } from './board-node-props.service';
 import { CreateBoardNodePropDto } from './dto/create-board-node-prop.dto';
 import { UpdateBoardNodePropDto } from './dto/update-board-node-prop.dto';
 
-@ApiTags('Board graph — node props')
+@ApiTags('Board - node props')
 @Controller('board-node-props')
 export class BoardNodePropsController {
-  constructor(private readonly service: BoardNodePropsService) {}
+  constructor(private readonly service: BoardNodePropsService) { }
 
   @Post()
   @ApiOperation({
@@ -24,12 +24,6 @@ export class BoardNodePropsController {
   })
   create(@Body() dto: CreateBoardNodePropDto) {
     return this.service.create(dto);
-  }
-
-  @Get()
-  @ApiOperation({ summary: 'List board node props' })
-  findAll() {
-    return this.service.findAll();
   }
 
   @Get(':id')

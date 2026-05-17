@@ -1,15 +1,27 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { paginate } from 'nestjs-paginate';
+import { Repository, type FindOptionsWhere } from 'typeorm';
+import {
+  buildPaginateQuery,
+  type PaginatedResult,
+  toPaginatedResult,
+} from '../../common/pagination';
 import { CatalogNodeSocket } from '../../entities/catalog-node-socket.entity';
 import { CreateCatalogNodeSocketDto } from './dto/create-catalog-node-socket.dto';
+import {
+  CATALOG_NODE_SOCKET_SORT_WHITELIST,
+  ListCatalogNodeSocketsQueryDto,
+} from './dto/list-catalog-node-sockets-query.dto';
 import { UpdateCatalogNodeSocketDto } from './dto/update-catalog-node-socket.dto';
+import { CatalogNodeVersionsService } from './catalog-node-versions.service';
 
 @Injectable()
 export class CatalogNodeSocketsService {
   constructor(
     @InjectRepository(CatalogNodeSocket)
     private readonly repo: Repository<CatalogNodeSocket>,
+    private readonly catalogNodeVersionsService: CatalogNodeVersionsService,
   ) {}
 
   create(dto: CreateCatalogNodeSocketDto) {
@@ -22,8 +34,28 @@ export class CatalogNodeSocketsService {
     return this.repo.save(row);
   }
 
-  findAll() {
-    return this.repo.find({ order: { id: 'ASC' } });
+  async findAllByVersion(
+    catalogNodeVersionId: string,
+    query: ListCatalogNodeSocketsQueryDto,
+  ): Promise<PaginatedResult<CatalogNodeSocket>> {
+    await this.catalogNodeVersionsService.assertExists(catalogNodeVersionId);
+    const paginateQuery = buildPaginateQuery(
+      query,
+      CATALOG_NODE_SOCKET_SORT_WHITELIST,
+    );
+    const where: FindOptionsWhere<CatalogNodeSocket> = { catalogNodeVersionId };
+    if (query.type) {
+      where.type = query.type;
+    }
+    const result = await paginate(paginateQuery, this.repo, {
+      where,
+      sortableColumns: [...CATALOG_NODE_SOCKET_SORT_WHITELIST],
+      defaultSortBy: [['id', 'ASC']],
+      searchableColumns: ['name'],
+      maxLimit: 100,
+      defaultLimit: 20,
+    });
+    return toPaginatedResult(result);
   }
 
   async findOne(id: string) {

@@ -1,15 +1,27 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { paginate } from 'nestjs-paginate';
 import { Repository } from 'typeorm';
+import {
+  buildPaginateQuery,
+  type PaginatedResult,
+  toPaginatedResult,
+} from '../../common/pagination';
 import { CatalogNodeSocketRule } from '../../entities/catalog-node-socket-rule.entity';
 import { CreateCatalogNodeSocketRuleDto } from './dto/create-catalog-node-socket-rule.dto';
+import {
+  CATALOG_NODE_SOCKET_RULE_SORT_WHITELIST,
+  ListCatalogNodeSocketRulesQueryDto,
+} from './dto/list-catalog-node-socket-rules-query.dto';
 import { UpdateCatalogNodeSocketRuleDto } from './dto/update-catalog-node-socket-rule.dto';
+import { CatalogNodeVersionsService } from './catalog-node-versions.service';
 
 @Injectable()
 export class CatalogNodeSocketRulesService {
   constructor(
     @InjectRepository(CatalogNodeSocketRule)
     private readonly repo: Repository<CatalogNodeSocketRule>,
+    private readonly catalogNodeVersionsService: CatalogNodeVersionsService,
   ) {}
 
   create(dto: CreateCatalogNodeSocketRuleDto) {
@@ -17,8 +29,23 @@ export class CatalogNodeSocketRulesService {
     return this.repo.save(row);
   }
 
-  findAll() {
-    return this.repo.find({ order: { id: 'ASC' } });
+  async findAllByVersion(
+    catalogNodeVersionId: string,
+    query: ListCatalogNodeSocketRulesQueryDto,
+  ): Promise<PaginatedResult<CatalogNodeSocketRule>> {
+    await this.catalogNodeVersionsService.assertExists(catalogNodeVersionId);
+    const paginateQuery = buildPaginateQuery(
+      query,
+      CATALOG_NODE_SOCKET_RULE_SORT_WHITELIST,
+    );
+    const result = await paginate(paginateQuery, this.repo, {
+      where: { catalogNodeVersionId },
+      sortableColumns: [...CATALOG_NODE_SOCKET_RULE_SORT_WHITELIST],
+      defaultSortBy: [['id', 'ASC']],
+      maxLimit: 100,
+      defaultLimit: 20,
+    });
+    return toPaginatedResult(result);
   }
 
   async findOne(id: string) {

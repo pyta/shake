@@ -13,21 +13,15 @@ import { CreateCatalogNodeSocketDto } from './dto/create-catalog-node-socket.dto
 import { UpdateCatalogNodeSocketDto } from './dto/update-catalog-node-socket.dto';
 import { CatalogNodeSocketsService } from './catalog-node-sockets.service';
 
-@ApiTags('Catalog — node sockets')
+@ApiTags('Catalog - node sockets')
 @Controller('catalog-node-sockets')
 export class CatalogNodeSocketsController {
-  constructor(private readonly service: CatalogNodeSocketsService) {}
+  constructor(private readonly service: CatalogNodeSocketsService) { }
 
   @Post()
   @ApiOperation({ summary: 'Create input/output port on a catalog version' })
   create(@Body() dto: CreateCatalogNodeSocketDto) {
     return this.service.create(dto);
-  }
-
-  @Get()
-  @ApiOperation({ summary: 'List catalog node sockets' })
-  findAll() {
-    return this.service.findAll();
   }
 
   @Get(':id')

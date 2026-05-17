@@ -1,7 +1,13 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { updateGlobalConfig } from 'nestjs-paginate';
 import { AppModule } from './app.module';
 import { setupSwagger } from './swagger';
+
+updateGlobalConfig({
+  defaultLimit: 20,
+  defaultMaxLimit: 100,
+});
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

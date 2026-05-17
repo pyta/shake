@@ -1,5 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { PaginatedMetaDto } from './common/swagger/paginated-meta.dto';
 
 export const DEFAULT_SWAGGER_PATH = 'docs';
 
@@ -9,30 +10,85 @@ export function setupSwagger(app: INestApplication): string {
   const config = new DocumentBuilder()
     .setTitle('Shake API')
     .setDescription(
-      'REST API for the node catalog (toolbox definitions) and board graph (runtime nodes, connections, props). ' +
-        'IDs in URLs are internal bigint primary keys (string in JSON). `publicId` is the stable UUID for clients.',
+      [
+        'REST API for the **node catalog** (toolbox definitions) and **board graph** (runtime nodes, connections, props).',
+      ].join('\n'),
     )
     .setVersion('1.0')
-    .addTag('Health')
-    .addTag('Catalog — node defs')
-    .addTag('Catalog — node def versions')
-    .addTag('Catalog — edge defs')
-    .addTag('Catalog — edge rule defs')
-    .addTag('Catalog — prop defs')
-    .addTag('Boards')
-    .addTag('Board graph — nodes')
-    .addTag('Board graph — connections')
-    .addTag('Board graph — node props')
+    .addTag('Health', 'Liveness / readiness')
+    .addTag(
+      'Boards',
+      'Board library and board-scoped paginated lists (`/boards`, `/boards/:boardId/nodes|connections|props`)',
+    )
+    .addTag(
+      'Board - nodes',
+      'Place and manage nodes on boards (`/board-nodes` CRUD)',
+    )
+    .addTag(
+      'Board - connections',
+      'Edges between board node sockets (`/board-node-connections` CRUD)',
+    )
+    .addTag(
+      'Board - node props',
+      'Runtime property values on board nodes (`/board-node-props` CRUD)',
+    )
+    .addTag(
+      'Catalog - nodes',
+      'Logical node types / toolbox entries (`GET /catalog-nodes` paginated)',
+    )
+    .addTag(
+      'Catalog - node versions',
+      'Immutable versions per node type (nested list + `/catalog-node-versions` CRUD)',
+    )
+    .addTag(
+      'Catalog - node sockets',
+      'Input/output port definitions on a version (nested list + CRUD)',
+    )
+    .addTag(
+      'Catalog - node properties',
+      'Property schemas on a version (nested list + CRUD)',
+    )
+    .addTag(
+      'Catalog - socket rules',
+      'Allowed socket pairs on a version (nested list + CRUD)',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config, {
     operationIdFactory: (controllerKey, methodKey) =>
       `${controllerKey.replace(/Controller$/i, '')}_${methodKey}`,
+    extraModels: [PaginatedMetaDto],
   });
 
   SwaggerModule.setup(path, app, document, {
     jsonDocumentUrl: `${path}/json`,
     yamlDocumentUrl: `${path}/yaml`,
+    swaggerOptions: {
+      docExpansion: 'list',
+      filter: true,
+      // Inlined order: serialized to swagger-ui-init.js (no outer closure).
+      tagsSorter: (a, b) => {
+        const order = [
+          'Health',
+          'Boards',
+          'Board - nodes',
+          'Board - connections',
+          'Board - node props',
+          'Catalog - nodes',
+          'Catalog - node versions',
+          'Catalog - node sockets',
+          'Catalog - node properties',
+          'Catalog - socket rules',
+        ];
+        const rank = (tag) => {
+          const name = typeof tag === 'string' ? tag : tag.name;
+          const i = order.indexOf(name);
+          return i === -1 ? 999 : i;
+        };
+        return rank(a) - rank(b);
+      },
+      operationsSorter: 'alpha',
+    },
   });
 
   return path;

@@ -13,21 +13,15 @@ import { BoardNodeConnectionsService } from './board-node-connections.service';
 import { CreateBoardNodeConnectionDto } from './dto/create-board-node-connection.dto';
 import { UpdateBoardNodeConnectionDto } from './dto/update-board-node-connection.dto';
 
-@ApiTags('Board graph — connections')
+@ApiTags('Board - connections')
 @Controller('board-node-connections')
 export class BoardNodeConnectionsController {
-  constructor(private readonly service: BoardNodeConnectionsService) {}
+  constructor(private readonly service: BoardNodeConnectionsService) { }
 
   @Post()
   @ApiOperation({ summary: 'Create connection between two board nodes' })
   create(@Body() dto: CreateBoardNodeConnectionDto) {
     return this.service.create(dto);
-  }
-
-  @Get()
-  @ApiOperation({ summary: 'List connections' })
-  findAll() {
-    return this.service.findAll();
   }
 
   @Get(':id')
