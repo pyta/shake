@@ -14,7 +14,6 @@ import {
   ListBoardsQueryDto,
 } from './dto/list-boards-query.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
-import { buildWhere } from './helpers/boards-where';
 
 @Injectable()
 export class BoardsService {
@@ -31,7 +30,6 @@ export class BoardsService {
   async findAll(query: ListBoardsQueryDto): Promise<PaginatedResult<Board>> {
     const paginateQuery = buildPaginateQuery(query, BOARD_SORT_WHITELIST);
     const result = await paginate(paginateQuery, this.repo, {
-      where: buildWhere(query),
       sortableColumns: [...BOARD_SORT_WHITELIST],
       defaultSortBy: [['id', 'ASC']],
       searchableColumns: ['name'],

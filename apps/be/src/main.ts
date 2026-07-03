@@ -11,8 +11,16 @@ updateGlobalConfig({
   defaultMaxLimit: 100,
 });
 
+const defaultCorsOrigins = [
+  'http://localhost:5173',
+  'http://localhost:4173',
+];
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors({
+    origin: process.env.CORS_ORIGINS?.split(',').map((o) => o.trim()) ?? defaultCorsOrigins,
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

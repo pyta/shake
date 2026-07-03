@@ -14,7 +14,6 @@ import {
   ListCatalogNodesQueryDto,
 } from './dto/list-catalog-nodes-query.dto';
 import { UpdateCatalogNodeDto } from './dto/update-catalog-node.dto';
-import { buildWhere } from './helpers/catalog-nodes-where';
 
 @Injectable()
 export class CatalogNodesService {
@@ -33,7 +32,6 @@ export class CatalogNodesService {
   ): Promise<PaginatedResult<CatalogNode>> {
     const paginateQuery = buildPaginateQuery(query, CATALOG_NODE_SORT_WHITELIST);
     const result = await paginate(paginateQuery, this.repo, {
-      where: buildWhere(query),
       sortableColumns: [...CATALOG_NODE_SORT_WHITELIST],
       defaultSortBy: [['id', 'ASC']],
       searchableColumns: ['slug'],
