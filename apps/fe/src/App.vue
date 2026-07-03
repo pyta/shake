@@ -1,15 +1,20 @@
 <script setup lang="ts">
-import { Button } from "@/components/ui/button";
+import AppSidebar from "@/components/custom/AppSidebar.vue";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 </script>
 
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit
-    <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to
-    read the documentation
-  </p>
-  <div>
-    <Button>Click me</Button>
-  </div>
+  <SidebarProvider>
+    <AppSidebar />
+    <SidebarInset>
+      <header class="flex h-12 items-center gap-2 border-b px-4">
+        <SidebarTrigger />
+      </header>
+      <RouterView />
+    </SidebarInset>
+  </SidebarProvider>
 </template>
