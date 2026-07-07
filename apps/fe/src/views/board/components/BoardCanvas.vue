@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { computed, toRef } from "vue";
-import { VueFlow, type VueFlowStore } from "@vue-flow/core";
+import {
+  VueFlow,
+  type NodeMouseEvent,
+  type VueFlowStore,
+} from "@vue-flow/core";
 import { Background } from "@vue-flow/background";
 import { Controls } from "@vue-flow/controls";
 import { MiniMap } from "@vue-flow/minimap";
@@ -13,6 +17,7 @@ import "@vue-flow/minimap/dist/style.css";
 import type { Board } from "@/api/types";
 
 import { useBoardGraph } from "../composables/useBoardGraph";
+import type { BoardNodeFlowData } from "../types/board-node-data";
 
 import BoardFlowDropListener from "./BoardFlowDropListener.vue";
 import BoardNodeCard from "./BoardNodeCard.vue";
@@ -20,6 +25,10 @@ import BoardNodeCard from "./BoardNodeCard.vue";
 const props = defineProps<{
   boardId: string;
   board: Board;
+}>();
+
+const emit = defineEmits<{
+  nodeDoubleClick: [node: { id: string; data: BoardNodeFlowData }];
 }>();
 
 const boardId = toRef(props, "boardId");
@@ -45,6 +54,10 @@ const {
 
 function onPaneReady(store: VueFlowStore) {
   applyInitialViewport(store.setViewport);
+}
+
+function onNodeDoubleClick({ node }: NodeMouseEvent) {
+  emit("nodeDoubleClick", { id: node.id, data: node.data });
 }
 
 const statusMessage = computed(() => connectError.value);
@@ -88,6 +101,7 @@ const statusMessage = computed(() => connectError.value);
       :max-zoom="2"
       delete-key-code="Delete"
       @pane-ready="onPaneReady"
+      @node-double-click="onNodeDoubleClick"
       @node-drag-stop="onNodeDragStop"
       @edges-change="egdeChanged"
       @nodes-change="nodeChanged"

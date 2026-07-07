@@ -60,6 +60,9 @@ export interface ListBoardNodePropsQuery extends PaginationQuery {
   catalogNodePropertyId?: string;
 }
 
+/** JSON values stored in catalog defaults and board node props. */
+export type BoardNodePropValue = string | number | boolean | null;
+
 export type CatalogNode = Schemas['CatalogNode'];
 export type CreateCatalogNode = Schemas['CreateCatalogNodeDto'];
 export type UpdateCatalogNode = Schemas['UpdateCatalogNodeDto'];
@@ -76,7 +79,9 @@ export type CatalogNodeSocketRule = Schemas['CatalogNodeSocketRule'];
 export type CreateCatalogNodeSocketRule = Schemas['CreateCatalogNodeSocketRuleDto'];
 export type UpdateCatalogNodeSocketRule = Schemas['UpdateCatalogNodeSocketRuleDto'];
 
-export type CatalogNodeProperty = Schemas['CatalogNodeProperty'];
+export type CatalogNodeProperty = Omit<Schemas['CatalogNodeProperty'], 'defaultValue'> & {
+  defaultValue?: BoardNodePropValue;
+};
 export type CreateCatalogNodeProperty = Schemas['CreateCatalogNodePropertyDto'];
 export type UpdateCatalogNodeProperty = Schemas['UpdateCatalogNodePropertyDto'];
 
@@ -93,6 +98,12 @@ export type BoardNodeConnection = Schemas['BoardNodeConnection'];
 export type CreateBoardNodeConnection = Schemas['CreateBoardNodeConnectionDto'];
 export type UpdateBoardNodeConnection = Schemas['UpdateBoardNodeConnectionDto'];
 
-export type BoardNodeProp = Schemas['BoardNodeProp'];
-export type CreateBoardNodeProp = Schemas['CreateBoardNodePropDto'];
-export type UpdateBoardNodeProp = Schemas['UpdateBoardNodePropDto'];
+export type BoardNodeProp = Omit<Schemas['BoardNodeProp'], 'value'> & {
+  value?: BoardNodePropValue;
+};
+export type CreateBoardNodeProp = Omit<Schemas['CreateBoardNodePropDto'], 'value'> & {
+  value?: BoardNodePropValue;
+};
+export type UpdateBoardNodeProp = Omit<Schemas['UpdateBoardNodePropDto'], 'value'> & {
+  value?: BoardNodePropValue;
+};

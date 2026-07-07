@@ -66,6 +66,7 @@ export function boardNodeToFlowNode(
     data: {
       name: boardNode.catalogNodeVersion?.name ?? slug,
       slug,
+      catalogNodeVersionId: boardNode.catalogNodeVersionId,
       inputs,
       outputs,
     },

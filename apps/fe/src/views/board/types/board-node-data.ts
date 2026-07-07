@@ -9,6 +9,7 @@ export interface MergedSocket {
 export interface BoardNodeFlowData {
   name: string;
   slug: string;
+  catalogNodeVersionId: string;
   inputs: MergedSocket[];
   outputs: MergedSocket[];
 }

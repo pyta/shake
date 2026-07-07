@@ -13,6 +13,11 @@ export const boardNodePropsService = {
       query,
     }),
 
+  listByNode: (boardId: string, nodeId: string, query?: ListBoardNodePropsQuery) =>
+    api.get<PaginatedResult<BoardNodeProp>>(`/boards/${boardId}/props`, {
+      query: { ...query, nodeId },
+    }),
+
   create: (body: CreateBoardNodeProp) =>
     api.post<BoardNodeProp>('/board-node-props', body),
 
