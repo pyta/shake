@@ -100,6 +100,7 @@ Allowed connections between **two edge definitions on the same `CatalogNodeVersi
 | ------------------------ | ----------- | ----------------------------------------------------------------------------- |
 | `id`                     | bigint      | PK                                                                            |
 | `catalogNodeVersionId`   | bigint      | FK → `CatalogNodeVersion`                                                     |
+| `name`                   | string      | Stable key for forms and board node props (e.g. `header`, `level`)            |
 | `type`                   | string      | Initially **`text`** and **`integer`**; keep extensible (e.g. `bool`, `json`) |
 | `defaultValue`           | jsonb       | Nullable; shape interpreted from `type`                                       |
 | `isRequired`             | boolean     |                                                                               |

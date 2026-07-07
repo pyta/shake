@@ -16,4 +16,4 @@ export class ListCatalogNodePropertiesQueryDto extends PaginationQueryDto {
   isRequired?: boolean;
 }
 
-export const CATALOG_NODE_PROPERTY_SORT_WHITELIST = ['id', 'type'] as const;
+export const CATALOG_NODE_PROPERTY_SORT_WHITELIST = ['id', 'name', 'type'] as const;

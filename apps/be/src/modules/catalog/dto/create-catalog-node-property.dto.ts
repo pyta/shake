@@ -6,6 +6,11 @@ export class CreateCatalogNodePropertyDto {
   @IsString()
   catalogNodeVersionId: string;
 
+  @ApiProperty({ example: 'header', maxLength: 255 })
+  @IsString()
+  @MaxLength(255)
+  name: string;
+
   @ApiProperty({
     example: 'text',
     maxLength: 64,

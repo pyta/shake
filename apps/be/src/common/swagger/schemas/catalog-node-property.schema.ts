@@ -6,6 +6,9 @@ export class CatalogNodeProperty extends CatalogStamped {
   @ApiBigIntId()
   catalogNodeVersionId: string;
 
+  @ApiProperty({ example: 'header', maxLength: 255 })
+  name: string;
+
   @ApiProperty({ example: 'string', maxLength: 64 })
   type: string;
 

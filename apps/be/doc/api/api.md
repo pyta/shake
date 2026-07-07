@@ -92,7 +92,7 @@ Defaults: `page=1`, `pageSize=20`, max `pageSize=100` (`nestjs-paginate` global 
 | `GET /catalog-nodes`                          | —                                    | `slug`       |
 | `GET /catalog-nodes/:catalogNodeId/versions`  | `isActive`, `includeDeprecated`      | `name`       |
 | `GET /catalog-node-versions/:id/sockets`      | `type` (`input` \| `output`)         | `name`       |
-| `GET /catalog-node-versions/:id/properties`   | `type`, `isRequired`                 | —            |
+| `GET /catalog-node-versions/:id/properties`   | `type`, `isRequired`                 | `name`       |
 | `GET /catalog-node-versions/:id/socket-rules` | —                                    | —            |
 
 Sort whitelists live next to each list DTO / service (e.g. board nodes: `id`, `createdAt`).
@@ -211,7 +211,7 @@ return toPaginatedResult(result);
 | `catalog-nodes`           | `id`, `slug`, `createdAt`, `updatedAt` |
 | `catalog-node-versions`   | `id`, `version`, `name`, `createdAt`   |
 | `catalog-node-sockets`    | `id`, `name`, `type`                   |
-| `catalog-node-properties` | `id`, `type`                           |
+| `catalog-node-properties` | `id`, `name`, `type`                   |
 | `boards`                  | `id`, `name`, `createdAt`, `updatedAt` |
 | `board-nodes`             | `id`, `createdAt`                      |
 | `board-node-connections`  | `id`, `order`                          |

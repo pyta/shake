@@ -120,6 +120,7 @@ async function replaceProperties(
     await repo.save(
       repo.create({
         catalogNodeVersionId: version.id,
+        name: property.name,
         type: property.type,
         defaultValue: property.defaultValue,
         isRequired: property.isRequired,

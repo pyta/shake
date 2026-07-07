@@ -20,6 +20,7 @@ export interface CatalogCsvRule {
 
 export interface CatalogCsvProperty {
   nodeSlug: string;
+  name: string;
   type: string;
   defaultValue: unknown;
   isRequired: boolean;
@@ -86,6 +87,7 @@ export function loadCatalogCsv(): CatalogCsvData {
   const propertyRows = readCsvTable(readCatalogFile('props.csv'));
   const properties: CatalogCsvProperty[] = propertyRows.map((row) => ({
     nodeSlug: row.NodeName.trim(),
+    name: (row.PropName ?? row.name ?? '').trim(),
     type: row.Type.trim(),
     defaultValue: parseDefaultValue(row.DefaultValue),
     isRequired: (row.IsRequired ?? '').toLowerCase() === 'true',
@@ -103,6 +105,11 @@ export function loadCatalogCsv(): CatalogCsvData {
     if (!nodeSlugs.has(property.nodeSlug)) {
       throw new Error(
         `Property on "${property.nodeSlug}" references unknown node`,
+      );
+    }
+    if (!property.name) {
+      throw new Error(
+        `Property on "${property.nodeSlug}" is missing PropName`,
       );
     }
   }
