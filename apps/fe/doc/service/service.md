@@ -271,7 +271,7 @@ Mirror **entities** and DTO field names (codegen `Create*Dto` → alias `Create*
 | `CreateCatalogNodeVersion`    | `catalogNodeId`, `version`, `name`, `isActive?`, `deprecatedAt?`           |
 | `CreateCatalogNodeSocket`     | `catalogNodeVersionId`, `type: 'input' \| 'output'`, `name`, `limit?`      |
 | `CreateCatalogNodeSocketRule` | `catalogNodeVersionId`, `catalogNodeSocketFromId`, `catalogNodeSocketToId` |
-| `CreateCatalogNodeProperty`   | `catalogNodeVersionId`, `type`, `defaultValue?`, `isRequired?`             |
+| `CreateCatalogNodeProperty`   | `catalogNodeVersionId`, `name`, `type`, `defaultValue?`, `isRequired?`     |
 
 Board graph:
 

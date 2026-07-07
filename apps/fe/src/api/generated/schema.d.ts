@@ -623,6 +623,8 @@ export interface components {
              * @example 1
              */
             catalogNodeVersionId: string;
+            /** @example header */
+            name: string;
             /** @example string */
             type: string;
             defaultValue?: Record<string, never> | null;
@@ -781,6 +783,8 @@ export interface components {
              * @example 1
              */
             catalogNodeVersionId: string;
+            /** @example header */
+            name: string;
             /**
              * @description e.g. `text`, `integer`
              * @example text
@@ -800,6 +804,8 @@ export interface components {
              * @example 1
              */
             catalogNodeVersionId?: string;
+            /** @example header */
+            name?: string;
             /**
              * @description e.g. `text`, `integer`
              * @example text
