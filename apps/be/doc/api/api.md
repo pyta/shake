@@ -5,6 +5,7 @@ Backend HTTP contract: **paginated nested lists**, **flat CRUD** by entity id, a
 Related docs:
 
 - [DB schema](../db/db.md) — entities, soft delete, deprecation
+- [Board document](../db/board-document.md) — publish tree JSON / `BoardDocument` versions (design)
 - [FE services & sync](../../../fe/doc/service/service.md) — mirrors this API on the client (`openapi-typescript`, services)
 
 ---

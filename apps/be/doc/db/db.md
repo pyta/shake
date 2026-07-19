@@ -6,6 +6,8 @@ The goal is to provide DB structure to keep information about **nodes**. Nodes a
 - **logic** - some nodes act as logic operators (e.g. AND / OR).
 - **UI relation** - some nodes, driven by logic, control visibility, disabled state, etc.
 
+Related: [Board document (graph → tree → JSON)](./board-document.md) — UI tree via `root`, `LogicExpr` for visible/enabled, versioned `BoardDocument` publish.
+
 ## Stack
 
 - **PostgreSQL** + **TypeORM** (NestJS backend).
