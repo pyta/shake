@@ -41,6 +41,15 @@ There is **no** global `GET /catalog-node-versions` — versions are always list
 
 Board-scoped lists take `boardId` from the URL path, not a `?boardId=` query param.
 
+### Board documents & publish (see [board-document.md](../board-document.md))
+
+| FE service              | Role               | Endpoints                                                                                          |
+| ----------------------- | ------------------ | -------------------------------------------------------------------------------------------------- |
+| `boardPublishService`   | Async publish jobs | `POST /boards/:boardId/publish` (**202**), `GET .../publish-jobs`, `GET .../publish-jobs/:jobId` |
+| `boardDocumentsService` | Published payloads | `GET .../document`, `GET .../documents`, `GET .../documents/:documentId`                           |
+
+`Board.snap` remains presentation-only; published tree JSON is `BoardDocument.payload`, not `snap`. UI: Publish + Versions on `BoardDetailPage` via `useBoardPublish`.
+
 ### `BoardNodeSocket` (no standalone REST resource)
 
 Runtime sockets are **created on the BE** when a node is placed (`POST /board-nodes`). There is no `GET /board-node-sockets` collection.

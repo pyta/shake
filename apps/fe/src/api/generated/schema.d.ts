@@ -313,6 +313,108 @@ export interface paths {
         patch: operations["Boards_update"];
         trace?: never;
     };
+    "/boards/{boardId}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enqueue async board document publish (202 + job id) */
+        post: operations["BoardDocuments_enqueuePublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/boards/{boardId}/publish-jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List recent publish jobs for a board */
+        get: operations["BoardDocuments_listJobs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/boards/{boardId}/publish-jobs/{jobId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get publish job status */
+        get: operations["BoardDocuments_getJob"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/boards/{boardId}/document": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get currently published board document */
+        get: operations["BoardDocuments_getPublished"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/boards/{boardId}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List published document versions */
+        get: operations["BoardDocuments_listDocuments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/boards/{boardId}/documents/{documentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a specific published document version */
+        get: operations["BoardDocuments_getDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/boards/{boardId}/nodes": {
         parameters: {
             query?: never;
@@ -857,6 +959,11 @@ export interface components {
             /** @example My board */
             name: string;
             snap?: Record<string, never> | null;
+            /**
+             * @description bigint (string in JSON)
+             * @example 1
+             */
+            publishedDocumentId?: string | null;
         };
         PaginatedBoards: {
             data: components["schemas"]["Board"][];
@@ -874,6 +981,85 @@ export interface components {
              *     }
              */
             snap?: Record<string, never> | null;
+        };
+        BoardPublishJob: {
+            /**
+             * @description bigint (string in JSON)
+             * @example 1
+             */
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * @description bigint (string in JSON)
+             * @example 1
+             */
+            createdById?: string | null;
+            /**
+             * @description bigint (string in JSON)
+             * @example 1
+             */
+            updatedById?: string | null;
+            /** Format: date-time */
+            deletedAt: string | null;
+            /**
+             * @description bigint (string in JSON)
+             * @example 1
+             */
+            boardId: string;
+            /**
+             * @example pending
+             * @enum {string}
+             */
+            status: "pending" | "running" | "completed" | "failed";
+            /**
+             * @description bigint (string in JSON)
+             * @example 1
+             */
+            boardDocumentId?: string | null;
+            error?: string | null;
+            /** @example 0 */
+            attemptCount: number;
+            /** Format: date-time */
+            startedAt: string | null;
+            /** Format: date-time */
+            finishedAt: string | null;
+        };
+        BoardDocument: {
+            /**
+             * @description bigint (string in JSON)
+             * @example 1
+             */
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * @description bigint (string in JSON)
+             * @example 1
+             */
+            createdById?: string | null;
+            /**
+             * @description bigint (string in JSON)
+             * @example 1
+             */
+            updatedById?: string | null;
+            /** Format: date-time */
+            deletedAt: string | null;
+            /**
+             * @description bigint (string in JSON)
+             * @example 1
+             */
+            boardId: string;
+            /** @example 1 */
+            version: number;
+            /** @description Published board document payload (nodes, connections, tree) */
+            payload: {
+                [key: string]: unknown;
+            };
         };
         BoardNodeSocket: {
             /**
@@ -1989,6 +2175,142 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Board"];
+                };
+            };
+        };
+    };
+    BoardDocuments_enqueuePublish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Row primary key (`bigint`, string in JSON) */
+                boardId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoardPublishJob"];
+                };
+            };
+        };
+    };
+    BoardDocuments_listJobs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Row primary key (`bigint`, string in JSON) */
+                boardId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoardPublishJob"][];
+                };
+            };
+        };
+    };
+    BoardDocuments_getJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Row primary key (`bigint`, string in JSON) */
+                boardId: string;
+                /** @description Row primary key (`bigint`, string in JSON) */
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoardPublishJob"];
+                };
+            };
+        };
+    };
+    BoardDocuments_getPublished: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Row primary key (`bigint`, string in JSON) */
+                boardId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoardDocument"];
+                };
+            };
+        };
+    };
+    BoardDocuments_listDocuments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Row primary key (`bigint`, string in JSON) */
+                boardId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoardDocument"][];
+                };
+            };
+        };
+    };
+    BoardDocuments_getDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Row primary key (`bigint`, string in JSON) */
+                boardId: string;
+                /** @description Row primary key (`bigint`, string in JSON) */
+                documentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoardDocument"];
                 };
             };
         };

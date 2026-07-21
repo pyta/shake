@@ -89,6 +89,10 @@ export type Board = Schemas['Board'];
 export type CreateBoard = Schemas['CreateBoardDto'];
 export type UpdateBoard = Schemas['UpdateBoardDto'];
 
+export type BoardPublishJob = Schemas['BoardPublishJob'];
+export type BoardPublishJobStatus = BoardPublishJob['status'];
+export type BoardDocument = Schemas['BoardDocument'];
+
 export type BoardNodeSocket = Schemas['BoardNodeSocket'];
 export type BoardNode = Schemas['BoardNode'];
 export type CreateBoardNode = Schemas['CreateBoardNodeDto'];

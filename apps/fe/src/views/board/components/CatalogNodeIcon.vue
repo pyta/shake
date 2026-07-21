@@ -14,6 +14,7 @@ import {
   MousePointerClick,
   SlidersHorizontal,
   Square,
+  CircleDot,
 } from "lucide-vue-next";
 
 const props = defineProps<{
@@ -33,6 +34,7 @@ const ICON_BY_SLUG: Record<string, Component> = {
   selected: MousePointerClick,
   header: Heading,
   range: SlidersHorizontal,
+  root: CircleDot,
 };
 
 const icon = computed(() => ICON_BY_SLUG[props.slug] ?? HelpCircle);
