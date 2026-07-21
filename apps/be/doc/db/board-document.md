@@ -330,7 +330,8 @@ flowchart LR
 
 ## Follow-ups (implementation)
 
-1. Align [`db.md`](./db.md) naming/examples with code (`BoardNode*`, cross-type rules, `string`/`number` props).
-2. Seed catalog `root` (CSV + matrix/rules).
-3. Migration: `BoardDocument` + `BoardPublishJob` + `Board.publishedDocumentId`.
-4. Serializer worker + publish API (`202` + job poll); CE reads published payload and evaluates `LogicExpr`.
+1. Align [`db.md`](./db.md) naming/examples with code (`BoardNode*`, cross-type rules, `string`/`number` props) — done.
+2. Seed catalog `root` (CSV + matrix/rules) — done; run `yarn seed:catalog` against your DB.
+3. Migration: `BoardDocument` + `BoardPublishJob` + `Board.publishedDocumentId` — done (`1784470000000-AddBoardDocumentsAndPublishJobs`).
+4. Serializer worker + publish API (`202` + job poll) — done (`POST /boards/:boardId/publish`, etc.).
+5. CE reads published payload and evaluates `LogicExpr` — still open.

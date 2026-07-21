@@ -1,5 +1,8 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ApiJsonValueOptional } from '../api-property.helpers';
+import { ApiProperty } from '@nestjs/swagger';
+import {
+  ApiBigIntIdOptional,
+  ApiJsonValueOptional,
+} from '../api-property.helpers';
 import { Audited } from './audited.schema';
 
 export class Board extends Audited {
@@ -8,4 +11,7 @@ export class Board extends Audited {
 
   @ApiJsonValueOptional()
   snap: Record<string, unknown> | null;
+
+  @ApiBigIntIdOptional()
+  publishedDocumentId: string | null;
 }

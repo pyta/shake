@@ -1,5 +1,9 @@
 export { Audited } from './audited.schema';
 export { Board } from './board.schema';
+export {
+  BoardDocument,
+  BoardPublishJob,
+} from './board-document.schema';
 export { BoardNode } from './board-node.schema';
 export { BoardNodeConnection } from './board-node-connection.schema';
 export { BoardNodeProp } from './board-node-prop.schema';
@@ -24,6 +28,10 @@ export {
 
 import { PaginatedMetaDto } from '../paginated-meta.dto';
 import { Board } from './board.schema';
+import {
+  BoardDocument,
+  BoardPublishJob,
+} from './board-document.schema';
 import { BoardNode } from './board-node.schema';
 import { BoardNodeConnection } from './board-node-connection.schema';
 import { BoardNodeProp } from './board-node-prop.schema';
@@ -53,6 +61,8 @@ export const OPENAPI_EXTRA_MODELS = [
   Audited,
   CatalogStamped,
   Board,
+  BoardDocument,
+  BoardPublishJob,
   BoardNode,
   BoardNodeSocket,
   BoardNodeConnection,

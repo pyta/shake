@@ -107,25 +107,36 @@ async function replaceProperties(
   versionsBySlug: Map<string, CatalogNodeVersion>,
 ) {
   const repo = dataSource.getRepository(CatalogNodeProperty);
-  const versionIds = [...versionsBySlug.values()].map((v) => v.id);
 
-  if (versionIds.length > 0) {
-    await repo.delete({ catalogNodeVersionId: In(versionIds) });
-  }
-
+  // Upsert by (catalogNodeVersionId, name) so we do not DELETE rows that
+  // board_node_props may still reference.
   for (const property of data.properties) {
     const version = versionsBySlug.get(property.nodeSlug);
     if (!version) continue;
 
-    await repo.save(
-      repo.create({
+    const existing = await repo.findOne({
+      where: {
         catalogNodeVersionId: version.id,
         name: property.name,
-        type: property.type,
-        defaultValue: property.defaultValue,
-        isRequired: property.isRequired,
-      }),
-    );
+      },
+    });
+
+    if (existing) {
+      existing.type = property.type;
+      existing.defaultValue = property.defaultValue;
+      existing.isRequired = property.isRequired;
+      await repo.save(existing);
+    } else {
+      await repo.save(
+        repo.create({
+          catalogNodeVersionId: version.id,
+          name: property.name,
+          type: property.type,
+          defaultValue: property.defaultValue,
+          isRequired: property.isRequired,
+        }),
+      );
+    }
   }
 }
 
@@ -185,8 +196,10 @@ async function seedCatalog() {
     const versionsBySlug = await upsertVersions(data, nodesBySlug);
     const socketsByName = await upsertSockets(data, versionsBySlug);
 
-    await replaceProperties(data, versionsBySlug);
+    // Rules before properties: property replace can fail when board_node_props
+    // still reference catalog rows; sockets/rules for new types (e.g. root) still apply.
     await replaceRules(data, socketsByName, versionsBySlug);
+    await replaceProperties(data, versionsBySlug);
 
     console.log(
       [

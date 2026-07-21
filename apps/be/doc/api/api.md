@@ -5,8 +5,21 @@ Backend HTTP contract: **paginated nested lists**, **flat CRUD** by entity id, a
 Related docs:
 
 - [DB schema](../db/db.md) — entities, soft delete, deprecation
-- [Board document](../db/board-document.md) — publish tree JSON / `BoardDocument` versions (design)
+- [Board document](../db/board-document.md) — publish tree JSON / `BoardDocument` versions
 - [FE services & sync](../../../fe/doc/service/service.md) — mirrors this API on the client (`openapi-typescript`, services)
+
+### Board document publish
+
+| Method | Path | Response |
+| ------ | ---- | -------- |
+| `POST` | `/boards/:boardId/publish` | **`202 Accepted`** + `BoardPublishJob` |
+| `GET` | `/boards/:boardId/publish-jobs` | Job list (newest first) |
+| `GET` | `/boards/:boardId/publish-jobs/:jobId` | Job status |
+| `GET` | `/boards/:boardId/document` | Current published `BoardDocument` |
+| `GET` | `/boards/:boardId/documents` | Version list |
+| `GET` | `/boards/:boardId/documents/:documentId` | Specific version |
+
+Publish is async: enqueue a job, poll until `completed` / `failed`.
 
 ---
 

@@ -2,10 +2,12 @@ import 'reflect-metadata';
 import { config as loadEnv } from 'dotenv';
 import { DataSource } from 'typeorm';
 import { Board } from './src/entities/board.entity';
+import { BoardDocument } from './src/entities/board-document.entity';
 import { BoardNode } from './src/entities/board-node.entity';
 import { BoardNodeConnection } from './src/entities/board-node-connection.entity';
 import { BoardNodeProp } from './src/entities/board-node-prop.entity';
 import { BoardNodeSocket } from './src/entities/board-node-socket.entity';
+import { BoardPublishJob } from './src/entities/board-publish-job.entity';
 import { CatalogNode } from './src/entities/catalog-node.entity';
 import { CatalogNodeVersion } from './src/entities/catalog-node-version.entity';
 import { CatalogNodeSocket } from './src/entities/catalog-node-socket.entity';
@@ -23,6 +25,8 @@ export default new DataSource({
   database: process.env.DB_NAME ?? 'shake',
   entities: [
     Board,
+    BoardDocument,
+    BoardPublishJob,
     BoardNode,
     BoardNodeSocket,
     BoardNodeConnection,

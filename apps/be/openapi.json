@@ -1359,6 +1359,230 @@
         ]
       }
     },
+    "/boards/{boardId}/publish": {
+      "post": {
+        "operationId": "BoardDocuments_enqueuePublish",
+        "parameters": [
+          {
+            "name": "boardId",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardPublishJob"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Enqueue async board document publish (202 + job id)",
+        "tags": [
+          "Board documents"
+        ]
+      }
+    },
+    "/boards/{boardId}/publish-jobs": {
+      "get": {
+        "operationId": "BoardDocuments_listJobs",
+        "parameters": [
+          {
+            "name": "boardId",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BoardPublishJob"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "List recent publish jobs for a board",
+        "tags": [
+          "Board documents"
+        ]
+      }
+    },
+    "/boards/{boardId}/publish-jobs/{jobId}": {
+      "get": {
+        "operationId": "BoardDocuments_getJob",
+        "parameters": [
+          {
+            "name": "boardId",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          },
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardPublishJob"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get publish job status",
+        "tags": [
+          "Board documents"
+        ]
+      }
+    },
+    "/boards/{boardId}/document": {
+      "get": {
+        "operationId": "BoardDocuments_getPublished",
+        "parameters": [
+          {
+            "name": "boardId",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardDocument"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get currently published board document",
+        "tags": [
+          "Board documents"
+        ]
+      }
+    },
+    "/boards/{boardId}/documents": {
+      "get": {
+        "operationId": "BoardDocuments_listDocuments",
+        "parameters": [
+          {
+            "name": "boardId",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BoardDocument"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "List published document versions",
+        "tags": [
+          "Board documents"
+        ]
+      }
+    },
+    "/boards/{boardId}/documents/{documentId}": {
+      "get": {
+        "operationId": "BoardDocuments_getDocument",
+        "parameters": [
+          {
+            "name": "boardId",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          },
+          {
+            "name": "documentId",
+            "required": true,
+            "in": "path",
+            "description": "Row primary key (`bigint`, string in JSON)",
+            "schema": {
+              "type": "string",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardDocument"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get a specific published document version",
+        "tags": [
+          "Board documents"
+        ]
+      }
+    },
     "/boards/{boardId}/nodes": {
       "get": {
         "operationId": "BoardNodesList_findAll",
@@ -2840,6 +3064,12 @@
           "snap": {
             "type": "object",
             "nullable": true
+          },
+          "publishedDocumentId": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
           }
         },
         "required": [
@@ -2887,6 +3117,149 @@
             }
           }
         }
+      },
+      "BoardPublishJob": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "updatedById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "boardId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "failed"
+            ],
+            "example": "pending"
+          },
+          "boardDocumentId": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "attemptCount": {
+            "type": "number",
+            "example": 0
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "finishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "boardId",
+          "status",
+          "attemptCount",
+          "startedAt",
+          "finishedAt"
+        ]
+      },
+      "BoardDocument": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "updatedById": {
+            "type": "string",
+            "example": "1",
+            "nullable": true,
+            "description": "bigint (string in JSON)"
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "boardId": {
+            "type": "string",
+            "example": "1",
+            "description": "bigint (string in JSON)"
+          },
+          "version": {
+            "type": "number",
+            "example": 1
+          },
+          "payload": {
+            "type": "object",
+            "description": "Published board document payload (nodes, connections, tree)",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "boardId",
+          "version",
+          "payload"
+        ]
       },
       "BoardNodeSocket": {
         "type": "object",

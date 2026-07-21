@@ -2,26 +2,28 @@
 
 The goal is to provide DB structure to keep information about **nodes**. Nodes are the main part of the business logic (BL). They define relationships between items in the system. Based on the node type (stable **`slug`** on the catalog; see below) you can implement different behavior:
 
-- **containers** - one node is part of another.
-- **logic** - some nodes act as logic operators (e.g. AND / OR).
-- **UI relation** - some nodes, driven by logic, control visibility, disabled state, etc.
+- **containers** — one node is part of another (`output-*-children` → `input-*-id`).
+- **logic** — operators such as AND / OR / NOT, plus `between` and `selected`.
+- **UI relation** — sockets such as `output-*-visible` / `output-*-enabled`, driven by logic.
+- **tree root marker** — catalog slug `root` (no input, single `output-root-children`) marks the top of the UI tree.
 
-Related: [Board document (graph → tree → JSON)](./board-document.md) — UI tree via `root`, `LogicExpr` for visible/enabled, versioned `BoardDocument` publish.
+Related: [Board document (graph → tree → JSON)](./board-document.md) — UI tree via `root`, `LogicExpr` for visible/enabled, versioned `BoardDocument` + async `BoardPublishJob`.
 
 ## Stack
 
 - **PostgreSQL** + **TypeORM** (NestJS backend).
-- Migrations via TypeORM; normalized graph in tables is the **source of truth**.
+- Migrations via TypeORM; normalized graph in tables is the **source of truth** while editing.
+- Published CE payload lives in **`BoardDocument.payload`** (immutable versions); see [board-document.md](./board-document.md).
 
 ## Requirements
 
 - **Catalog scope:** Provide a **shared global toolbox** (one catalog for all users); boards are scoped per owner/tenant when that layer is added.
 - **Catalog versioning:** The catalog is **editable** (new types, new versions). Preserve backward compatibility by **never mutating a released catalog version in place**.
-- **Runtime vs catalog:** Each board **`Node` pins a concrete catalog version** (`CatalogNodeVersion`) so existing boards keep working after toolbox changes.
+- **Runtime vs catalog:** Each board **`BoardNode` pins a concrete catalog version** (`CatalogNodeVersion`) so existing boards keep working after toolbox changes.
 - **Deletion model:** **Soft-delete** boards; treat **nodes, connections, and props** on that board as inactive via the board (same query filters). For catalog definitions, prefer **deprecation** (`deprecatedAt` / `isActive`) over deleting rows when possible so references stay clear.
 - **Identifiers:** Use a **surrogate `bigint` primary key** on every table. Use **`bigint`** for internal foreign keys.
 - **Audit:** All entities use standard audit fields where applicable: `createdAt`, `updatedAt`, `deletedAt` (soft delete where specified), `createdById`, `updatedById` (nullable FK to `User` until the user module exists).
-- **`Board.snap`:** Persist as **`jsonb`**, **presentation-only** (viewport, layout, FE state). Keep it **consistent** with the normalized node graph (maintain on write or regenerate from the graph).
+- **`Board.snap`:** Persist as **`jsonb`**, **presentation-only** (viewport, layout, FE state). Keep it **consistent** with the normalized node graph (maintain on write or regenerate from the graph). **Not** the published tree document.
 - **Connection and rule validity:** Enforce in **application code** (allowed pairs from `CatalogNodeSocketRule` and related definitions, input/output semantics), not only via database constraints.
 
 ## Standard columns (pattern)
@@ -39,7 +41,9 @@ Catalog definition tables that use **deprecation** instead of delete may use `de
 
 ## Catalog (global toolbox)
 
-You need a toolbox of node types. Each **logical type** has a stable key; each **released version** is an immutable row graph (edges, rules, props) that runtime nodes pin to.
+You need a toolbox of node types. Each **logical type** has a stable key; each **released version** is an immutable row graph (sockets, rules, props) that runtime nodes pin to.
+
+Seed CSVs live under [`catalog/`](./catalog/): `nodes.csv`, `sockets.csv`, `sockets-matrix.csv` → `rules.csv`, `props.csv`.
 
 ### CatalogNode (logical type)
 
@@ -54,7 +58,7 @@ One row per logical node kind in the toolbox.
 
 ### CatalogNodeVersion (immutable catalog snapshot)
 
-Each change to edges/rules/props of a type is a **new version** row. Existing `Node` rows reference **one** `CatalogNodeVersion` forever (until you build an explicit "upgrade node" migration).
+Each change to sockets/rules/props of a type is a **new version** row. Existing `BoardNode` rows reference **one** `CatalogNodeVersion` forever (until you build an explicit "upgrade node" migration).
 
 | Field                        | Type                  | Notes                                                              |
 | ---------------------------- | --------------------- | ------------------------------------------------------------------ |
@@ -84,63 +88,73 @@ Belongs to a **single** `CatalogNodeVersion` (not the logical `CatalogNode` alon
 
 ### CatalogNodeSocketRule
 
-Allowed connections between **two edge definitions on the same `CatalogNodeVersion`** (typically pairing an output of one node instance with an input of another — validation rules live in the app; this table stores the catalog’s allowed pairs for tooling and validation).
+Allowed connections between **two catalog sockets** (often **cross-type** — e.g. `output-column-children` ↔ `input-tile-id`). Validation runs in the app; this table stores allowed pairs for tooling and validation. Seed data comes from [`sockets-matrix.csv`](./catalog/sockets-matrix.csv) via `yarn catalog:rules`.
 
-| Field                    | Type        | Notes                                                                                                                               |
-| ------------------------ | ----------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `id`                     | bigint      | PK                                                                                                                                  |
-| `catalogNodeVersionId`   | bigint      | FK → `CatalogNodeVersion` (both edges must belong to this version when the rule is intra-type; see note below for cross-type rules) |
-| `catalogNodeSocketFrom`  | bigint      | FK → `CatalogNodeSocket`                                                                                                            |
-| `catalogNodeSocketTo`    | bigint      | FK → `CatalogNodeSocket`                                                                                                            |
-| `createdAt`, `updatedAt` | timestamptz |                                                                                                                                     |
+| Field                     | Type        | Notes                                                                                          |
+| ------------------------- | ----------- | ---------------------------------------------------------------------------------------------- |
+| `id`                      | bigint      | PK                                                                                             |
+| `catalogNodeVersionId`    | bigint      | FK → `CatalogNodeVersion` (bookkeeping / seed artifact; **not** a same-type-only constraint) |
+| `catalogNodeSocketFromId` | bigint      | FK → `CatalogNodeSocket`                                                                       |
+| `catalogNodeSocketToId`   | bigint      | FK → `CatalogNodeSocket`                                                                       |
+| `createdAt`, `updatedAt`  | timestamptz |                                                                                                |
 
-**Note:** If you later need rules between **different** types on a connection, model that explicitly (e.g. rule table keyed by two versions or by “socket” descriptors). The original doc described symmetric use of two edges on one type; extend the schema when cross-type rules are required.
+When from/to sockets belong to different catalog versions, the seed may insert a rule row per involved version; treat the pair of socket ids as the real rule key.
 
 ### CatalogNodeProperty
 
-| Field                    | Type        | Notes                                                                         |
-| ------------------------ | ----------- | ----------------------------------------------------------------------------- |
-| `id`                     | bigint      | PK                                                                            |
-| `catalogNodeVersionId`   | bigint      | FK → `CatalogNodeVersion`                                                     |
-| `name`                   | string      | Stable key for forms and board node props (e.g. `header`, `level`)            |
-| `type`                   | string      | Initially **`text`** and **`integer`**; keep extensible (e.g. `bool`, `json`) |
-| `defaultValue`           | jsonb       | Nullable; shape interpreted from `type`                                       |
-| `isRequired`             | boolean     |                                                                               |
-| `createdAt`, `updatedAt` | timestamptz |                                                                               |
+| Field                    | Type        | Notes                                                                              |
+| ------------------------ | ----------- | ---------------------------------------------------------------------------------- |
+| `id`                     | bigint      | PK                                                                                 |
+| `catalogNodeVersionId`   | bigint      | FK → `CatalogNodeVersion`                                                          |
+| `name`                   | string      | Stable key for forms and board node props (e.g. `header`, `level`)                 |
+| `type`                   | string      | Canonical seed values: **`string`** and **`number`**; keep extensible (`bool`, …) |
+| `defaultValue`           | jsonb       | Nullable; shape interpreted from `type`                                            |
+| `isRequired`             | boolean     |                                                                                    |
+| `createdAt`, `updatedAt` | timestamptz |                                                                                    |
+
+Authoring props are **not** the same as UI `visible` / `enabled` (those are sockets + logic; see [board-document.md](./board-document.md)).
 
 ### Summary
 
-`CatalogNode` + `CatalogNodeVersion` + `CatalogNodeSocket` + `CatalogNodeSocketRule` + `CatalogNodeProperty` define how nodes behave in the app for that version. Runtime **`Node`** rows reference **`catalogNodeVersionId`** so the system stays backward compatible.
+`CatalogNode` + `CatalogNodeVersion` + `CatalogNodeSocket` + `CatalogNodeSocketRule` + `CatalogNodeProperty` define how nodes behave for that version. Runtime **`BoardNode`** rows reference **`catalogNodeVersionId`**.
 
 ### Example (conceptual; IDs simplified)
 
 **CatalogNode**
 
-| id  | slug |
-| --- | ---- |
-| 1   | tile |
+| id  | slug   |
+| --- | ------ |
+| 1   | tile   |
+| 2   | column |
+| 3   | root   |
 
-**CatalogNodeVersion** (first release of `tile`)
+**CatalogNodeVersion**
 
-| id  | catalogNode | version | name |
-| --- | ----------- | ------- | ---- |
-| 10  | 1           | 1       | tile |
+| id  | catalogNode | version | name   |
+| --- | ----------- | ------- | ------ |
+| 10  | 1           | 1       | tile   |
+| 20  | 2           | 1       | column |
+| 30  | 3           | 1       | root   |
 
-**CatalogNodeSocket** (for version `10`)
+**CatalogNodeSocket** (excerpt)
 
-| id  | type   | name     | catalogNodeVersionId | Limit |
-| --- | ------ | -------- | -------------------- | ----- |
-| 100 | input  | id       | 10                   | 1     |
-| 101 | output | children | 10                   | 1     |
+| id  | type   | name                   | catalogNodeVersionId | limit |
+| --- | ------ | ---------------------- | -------------------- | ----- |
+| 100 | input  | input-tile-id         | 10                   |       |
+| 101 | output | output-tile-visible    | 10                   | 1     |
+| 102 | output | output-tile-enabled    | 10                   | 1     |
+| 200 | input  | input-column-id       | 20                   |       |
+| 201 | output | output-column-children | 20                   |       |
+| 300 | output | output-root-children   | 30                   | 1     |
 
-**CatalogNodeSocketRule** (same concept as the entity above; example column names shortened)
+**CatalogNodeSocketRule** (cross-type; column names shortened)
 
-| id  | catalogNodeVersionId | fromSocketId | toSocketId |
-| --- | -------------------- | ------------ | ---------- |
-| 200 | 10                   | 100          | 101        |
-| 201 | 10                   | 101          | 100        |
+| id  | fromSocketId | toSocketId |
+| --- | ------------ | ---------- |
+| 400 | 201          | 100        |
+| 401 | 300          | 200        |
 
-So the `tile` type at version `1` has edges `id` and `children`, and connections may join `id` with `children` (and the symmetric rule row if you need both directions in data).
+So `column` children may connect to `input-tile-id`, and `root` may connect to a top UI node’s `input-*-id`.
 
 ---
 
@@ -150,43 +164,46 @@ A board is a whiteboard of placed nodes.
 
 ### Board
 
-| Field                                 | Type             | Notes                            |
-| ------------------------------------- | ---------------- | -------------------------------- |
-| `id`                                  | bigint           | PK                               |
-| `name`                                | string           |                                  |
-| `snap`                                | jsonb            | FE presentation; optional `null` |
-| `createdAt`, `updatedAt`, `deletedAt` | timestamptz      | Soft delete on `deletedAt`       |
-| `createdById`, `updatedById`          | bigint, nullable |                                  |
+| Field                                 | Type             | Notes                                                                 |
+| ------------------------------------- | ---------------- | --------------------------------------------------------------------- |
+| `id`                                  | bigint           | PK                                                                    |
+| `name`                                | string           |                                                                       |
+| `snap`                                | jsonb            | FE presentation only; optional `null`                                 |
+| `publishedDocumentId`                 | bigint, nullable | FK → live `BoardDocument` (see [board-document.md](./board-document.md)) |
+| `createdAt`, `updatedAt`, `deletedAt` | timestamptz      | Soft delete on `deletedAt`                                            |
+| `createdById`, `updatedById`          | bigint, nullable |                                                                       |
 
 Optional later: nullable **`workspaceId`** (or `ownerUserId`) when multi-tenant or per-user boards are added.
+
+Published payloads and async publish jobs are documented in [board-document.md](./board-document.md) (`BoardDocument`, `BoardPublishJob`).
 
 ---
 
 ## Runtime graph (per board)
 
-### Node
+### BoardNode
 
 | Field                                 | Type             | Notes                                                  |
 | ------------------------------------- | ---------------- | ------------------------------------------------------ |
 | `id`                                  | bigint           | PK                                                     |
 | `boardId`                             | bigint           | FK → `Board`                                           |
 | `catalogNodeVersionId`                | bigint           | FK → `CatalogNodeVersion` (**pinned catalog version**) |
-| `value`                               | string, optional | Same idea as original `NodeDef.value`                  |
+| `value`                               | string, optional | Optional free-form value                               |
 | `createdAt`, `updatedAt`, `deletedAt` | timestamptz      | Respect board soft-delete in queries                   |
 | `createdById`, `updatedById`          | bigint, nullable |                                                        |
 
-### NodeSocket
+### BoardNodeSocket
 
-One row per **catalog socket** on a **specific node** (mirror of `CatalogNodeSocket` for that node’s pinned `CatalogNodeVersion`). Creating a `Node` must create the full set of `NodeSocket` for its version in the same transaction (or equivalent atomic workflow).
+One row per **catalog socket** on a **specific node** (mirror of `CatalogNodeSocket` for that node’s pinned `CatalogNodeVersion`). Creating a `BoardNode` must create the full set of `BoardNodeSocket` for its version in the same transaction (or equivalent atomic workflow).
 
-| Field                                 | Type             | Notes                                                                                                  |
-| ------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------ |
-| `id`                                  | bigint           | PK                                                                                                     |
-| `boardId`                             | bigint           | FK → `Board` (denormalized for board-scoped queries; must match the parent `Node.boardId`)             |
-| `nodeId`                              | bigint           | FK → `Node`                                                                                            |
-| `catalogNodeSocketId`                 | bigint           | FK → `CatalogNodeSocket` (must belong to the same `CatalogNodeVersion` as `Node.catalogNodeVersionId`) |
-| `createdAt`, `updatedAt`, `deletedAt` | timestamptz      |                                                                                                        |
-| `createdById`, `updatedById`          | bigint, nullable |                                                                                                        |
+| Field                                 | Type             | Notes                                                                                                          |
+| ------------------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------- |
+| `id`                                  | bigint           | PK                                                                                                             |
+| `boardId`                             | bigint           | FK → `Board` (denormalized for board-scoped queries; must match the parent `BoardNode.boardId`)                |
+| `nodeId`                              | bigint           | FK → `BoardNode`                                                                                               |
+| `catalogNodeSocketId`                 | bigint           | FK → `CatalogNodeSocket` (must belong to the same `CatalogNodeVersion` as `BoardNode.catalogNodeVersionId`) |
+| `createdAt`, `updatedAt`, `deletedAt` | timestamptz      |                                                                                                                |
+| `createdById`, `updatedById`          | bigint, nullable |                                                                                                                |
 
 **Unique:** `(nodeId, catalogNodeSocketId)` — at most one runtime socket per catalog port per node.
 
@@ -194,42 +211,42 @@ One row per **catalog socket** on a **specific node** (mirror of `CatalogNodeSoc
 
 **Pros**
 
-- **`NodeConnection` has stable endpoints:** `fromNodeSocketId` / `toNodeSocketId` reference concrete rows, so edges stay valid if you later add per-socket runtime state (connection counts, UI hints, feature flags) without reshaping the connection table.
-- **Validation stays straightforward:** Same-board checks, input/output direction, and catalog rules all resolve through `NodeSockets` → `CatalogNodeSocket` → `CatalogNodeSocketRule`.
-- **Clone / duplicate node:** Copy `Node` + its `NodeSockets` (same `catalogNodeSocketId` targets) and remap connections in one place.
+- **`BoardNodeConnection` has stable endpoints:** `fromNodeSocketId` / `toNodeSocketId` reference concrete rows, so edges stay valid if you later add per-socket runtime state without reshaping the connection table.
+- **Validation stays straightforward:** Same-board checks, input/output direction, and catalog rules all resolve through `BoardNodeSocket` → `CatalogNodeSocket` → `CatalogNodeSocketRule`.
+- **Clone / duplicate node:** Copy `BoardNode` + its sockets (same `catalogNodeSocketId` targets) and remap connections in one place.
 - **Version pinning stays honest:** Each socket row ties a placed node to an exact catalog port definition for the version the node uses.
 
 **Cons**
 
-- **More rows:** Every node pays `O(#ports)` inserts up front; large boards mean more rows than a purely virtual “socket keyed by (nodeId, portName)” model.
-- **Must stay in sync:** Adding a port to a **new** catalog version is fine; if you ever backfill or edit sockets incorrectly, you can drift from the catalog unless creation and migrations are disciplined.
-- **No natural FK from catalog to runtime:** The app must enforce that every `Node` has exactly the sockets required by its `CatalogNodeVersion` (and no extras). Prefer a single code path (factory) plus tests or a DB assertion/trigger if you want hard guarantees.
+- **More rows:** Every node pays `O(#ports)` inserts up front.
+- **Must stay in sync:** Creation and migrations must keep runtime sockets aligned with the pinned catalog version.
+- **No natural FK from catalog to runtime:** Enforce completeness in a single factory path plus tests.
 
-### NodeConnection
+### BoardNodeConnection
 
-| Field                                 | Type             | Notes                                                                |
-| ------------------------------------- | ---------------- | -------------------------------------------------------------------- |
-| `id`                                  | bigint           | PK                                                                   |
-| `boardId`                             | bigint           | FK → `Board`                                                         |
-| `fromNodeSocketId`                    | bigint           | FK → `NodeSocket` (parent `Node` is implied via `NodeSocket.nodeId`) |
-| `toNodeSocketId`                      | bigint           | FK → `NodeSocket` (same)                                             |
-| `order`                               | int              | Ordering when multiple connections share the same endpoints          |
-| `createdAt`, `updatedAt`, `deletedAt` | timestamptz      |                                                                      |
-| `createdById`, `updatedById`          | bigint, nullable |                                                                      |
+| Field                                 | Type             | Notes                                                                      |
+| ------------------------------------- | ---------------- | -------------------------------------------------------------------------- |
+| `id`                                  | bigint           | PK                                                                         |
+| `boardId`                             | bigint           | FK → `Board`                                                               |
+| `fromNodeSocketId`                    | bigint           | FK → `BoardNodeSocket` (parent node implied via `BoardNodeSocket.nodeId`) |
+| `toNodeSocketId`                      | bigint           | FK → `BoardNodeSocket` (same)                                              |
+| `order`                               | int              | Ordering when multiple connections share an endpoint (e.g. children)       |
+| `createdAt`, `updatedAt`, `deletedAt` | timestamptz      |                                                                            |
+| `createdById`, `updatedById`          | bigint, nullable |                                                                            |
 
-Validity (allowed edge pairs, input/output direction, same board, endpoints’ `boardId` matching the connection’s `boardId`, etc.) is validated **in the application**, not with complex DB check constraints. You do **not** need `fromNodeId` / `toNodeId` on `NodeConnection` if every path goes through `NodeSockets`; add those columns only as a **denormalized cache** if joins from connection → socket → node become a proven hotspot.
+Validity is validated **in the application**. You do **not** need `fromNodeId` / `toNodeId` unless denormalized for performance.
 
-### NodeProperty
+### BoardNodeProp
 
-| Field                                 | Type             | Notes                                                                                                          |
-| ------------------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------- |
-| `id`                                  | bigint           | PK                                                                                                             |
-| `boardId`                             | bigint           | FK → `Board`                                                                                                   |
-| `nodeId`                              | bigint           | FK → `Node`                                                                                                    |
-| `catalogNodePropertyId`               | bigint           | FK → `CatalogNodeProperty` (must belong to the same `CatalogNodeVersion` as the node’s `catalogNodeVersionId`) |
-| `value`                               | jsonb            | Interpreted using `CatalogNodeProperty.type` (`text`, `integer`, …)                                            |
-| `createdAt`, `updatedAt`, `deletedAt` | timestamptz      |                                                                                                                |
-| `createdById`, `updatedById`          | bigint, nullable |                                                                                                                |
+| Field                                 | Type             | Notes                                                                                                                    |
+| ------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `id`                                  | bigint           | PK                                                                                                                       |
+| `boardId`                             | bigint           | FK → `Board`                                                                                                             |
+| `nodeId`                              | bigint           | FK → `BoardNode`                                                                                                         |
+| `catalogNodePropertyId`               | bigint           | FK → `CatalogNodeProperty` (must belong to the same `CatalogNodeVersion` as the node’s `catalogNodeVersionId`)          |
+| `value`                               | jsonb            | Interpreted using `CatalogNodeProperty.type` (`string`, `number`, …)                                                     |
+| `createdAt`, `updatedAt`, `deletedAt` | timestamptz      |                                                                                                                          |
+| `createdById`, `updatedById`          | bigint, nullable |                                                                                                                          |
 
 ---
 
@@ -244,16 +261,16 @@ Validity (allowed edge pairs, input/output direction, same board, endpoints’ `
 ## TypeORM module (implementation hint)
 
 - Add a **`DatabaseModule`** (or `TypeOrmModule.forRootAsync` in `AppModule`) with env-driven Postgres config.
-- Register entities under a feature module (e.g. `BoardModule`, `CatalogModule`) or a single `GraphModule` split by domain as the codebase grows.
+- Register entities under `BoardGraphModule` / `CatalogModule` (or split further as the codebase grows).
 - Use migrations for all DDL; avoid `synchronize: true` in production.
 
 ---
 
 ## Property types (initial)
 
-| `CatalogNodeProperty.type` | `NodeProperty.value` (jsonb) |
-| -------------------------- | ---------------------------- |
-| `text`                     | JSON string, e.g. `"hello"`  |
-| `integer`                  | JSON number, e.g. `42`       |
+| `CatalogNodeProperty.type` | `BoardNodeProp.value` (jsonb) |
+| -------------------------- | ----------------------------- |
+| `string`                   | JSON string, e.g. `"hello"`   |
+| `number`                   | JSON number, e.g. `42`        |
 
-Add new types by extending this table and validation in the app.
+Add new types by extending this table and validation in the app. Align with [`props.csv`](./catalog/props.csv) (`string` / `number`).

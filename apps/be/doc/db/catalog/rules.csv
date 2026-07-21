@@ -29,6 +29,8 @@ input-column-id,output-column-children
 output-column-children,input-column-id
 input-column-id,output-grid-children
 output-grid-children,input-column-id
+input-column-id,output-root-children
+output-root-children,input-column-id
 output-column-children,input-box-id
 input-box-id,output-column-children
 output-column-children,input-grid-id
@@ -83,6 +85,8 @@ output-box-enabled,input-selected-id
 input-selected-id,output-box-enabled
 input-grid-id,output-grid-children
 output-grid-children,input-grid-id
+input-grid-id,output-root-children
+output-root-children,input-grid-id
 output-grid-children,input-or-id
 input-or-id,output-grid-children
 output-grid-children,input-not-id

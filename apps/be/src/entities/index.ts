@@ -1,8 +1,13 @@
 export { Board } from './board.entity';
+export { BoardDocument } from './board-document.entity';
 export { BoardNode } from './board-node.entity';
 export { BoardNodeConnection } from './board-node-connection.entity';
 export { BoardNodeProp } from './board-node-prop.entity';
 export { BoardNodeSocket } from './board-node-socket.entity';
+export {
+  BoardPublishJob,
+  BoardPublishJobStatus,
+} from './board-publish-job.entity';
 export { CatalogNode } from './catalog-node.entity';
 export { CatalogNodeVersion } from './catalog-node-version.entity';
 export { CatalogNodeSocket } from './catalog-node-socket.entity';

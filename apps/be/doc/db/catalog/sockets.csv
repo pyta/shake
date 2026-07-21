@@ -22,10 +22,11 @@ not,output,output-not-condition,1
 between,input,input-between-id
 between,output,output-between-box,1
 selected,input,input-selected-id
-selected,input,output-selected-tile,1
+selected,output,output-selected-tile,1
 header,input,input-header-id
 header,output,output-header-visible,1
 header,output,output-header-enabled,1
 range,input,input-range-id
 range,output,output-range-visible,1
 range,output,output-range-enabled,1
+root,output,output-root-children,1
